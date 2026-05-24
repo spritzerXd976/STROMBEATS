@@ -32,19 +32,9 @@ jobs:
           mkdir -p artifacts
           cp app/build/outputs/apk/debug/app-debug.apk artifacts/StormBeats-debug.apk
 
-      - name: Upload APK as artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: StormBeats-APK
           path: artifacts/StormBeats-debug.apk
           retention-days: 30
-
-      - name: Create GitHub Release with APK
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          name: "StormBeats ${{ github.ref_name }}"
-          body: "⚡ StormBeats ${{ github.ref_name }} - Download the APK below and install on your Android device."
-          files: artifacts/StormBeats-debug.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
