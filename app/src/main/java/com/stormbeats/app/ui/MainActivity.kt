@@ -1,24 +1,21 @@
 package com.stormbeats.app.ui
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
-import com.stormbeats.app.R
-import com.stormbeats.app.databinding.ActivityMainBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.stormbeats.app.ui.compose.MainScreen
+import com.stormbeats.app.ui.theme.StormBeatsTheme
 
-class MainActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityMainBinding
-
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
-        binding.bottomNav.setupWithNavController(navController)
+        enableEdgeToEdge()
+        setContent {
+            StormBeatsTheme(darkTheme = true, dynamicColor = true) {
+                MainScreen()
+            }
+        }
     }
 }

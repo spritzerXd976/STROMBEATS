@@ -12,8 +12,8 @@ android {
         applicationId = "com.stormbeats.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
     }
 
     buildTypes {
@@ -27,6 +27,11 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.13"
     }
 
     compileOptions {
@@ -44,9 +49,12 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity.ktx)
+    implementation(libs.activity.compose)
     implementation(libs.fragment.ktx)
     implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime)
+    implementation(libs.lifecycle.runtime.compose)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     implementation(libs.retrofit)
@@ -64,4 +72,15 @@ dependencies {
     implementation(libs.palette)
     implementation(libs.swiperefresh)
     kapt(libs.room.compiler)
+
+    // Compose
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.animation)
+    implementation(libs.coil.compose)
+    debugImplementation(libs.compose.ui.tooling)
 }
