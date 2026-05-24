@@ -16,8 +16,8 @@ import java.io.File
 object UpdateManager {
 
     // CHANGE THESE to your GitHub username and repo name
-    const val GITHUB_OWNER = "YOUR_GITHUB_USERNAME"
-    const val GITHUB_REPO = "StormBeats"
+    const val GITHUB_OWNER = "spritzerXd976"
+    const val GITHUB_REPO = "STROMBEATS"
 
     private val repository = MusicRepository()
 

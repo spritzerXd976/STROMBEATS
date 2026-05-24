@@ -6,7 +6,6 @@
         <item name="colorPrimaryContainer">#1A1A1A</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorSurfaceVariant">#111111</item>
-        <item name="colorBackground">@color/black</item>
         <item name="android:colorBackground">@color/black</item>
         <item name="android:windowBackground">@color/black</item>
         <item name="android:statusBarColor">@color/black</item>

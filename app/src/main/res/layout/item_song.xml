@@ -22,7 +22,8 @@
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:scaleType="centerCrop"
-            android:background="#222222"
+            android:background="@drawable/bg_album_art"
+            android:clipToOutline="true"
             android:src="@drawable/ic_music_note"/>
 
         <LinearLayout

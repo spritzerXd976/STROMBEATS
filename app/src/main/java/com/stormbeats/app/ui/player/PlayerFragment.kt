@@ -23,8 +23,13 @@ class PlayerFragment : BottomSheetDialogFragment() {
     private val scope = CoroutineScope(Dispatchers.Main)
     private val handler = Handler(Looper.getMainLooper())
     private var seekRunnable: Runnable? = null
+    private var isUserSeeking = false
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentPlayerBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -38,12 +43,15 @@ class PlayerFragment : BottomSheetDialogFragment() {
                     binding.songTitle.text = it.name
                     binding.artistName.text = it.getPrimaryArtist()
                     binding.albumName.text = it.album?.name ?: ""
+
                     Glide.with(this@PlayerFragment)
                         .load(it.getImageUrl())
                         .placeholder(R.drawable.ic_music_note)
                         .centerCrop()
                         .into(binding.albumArt)
-                    binding.seekBar.max = it.getDurationSeconds().toInt()
+
+                    // seekBar max in seconds (duration is ms)
+                    binding.seekBar.max = (it.getDurationSeconds()).toInt()
                 }
             }
         }
@@ -60,12 +68,27 @@ class PlayerFragment : BottomSheetDialogFragment() {
         binding.btnNext.setOnClickListener { PlayerController.playNext() }
         binding.btnPrevious.setOnClickListener { PlayerController.playPrevious() }
 
-        binding.seekBar.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) PlayerController.seekTo(progress * 1000L)
+        binding.seekBar.setOnSeekBarChangeListener(object :
+            android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: android.widget.SeekBar?,
+                progress: Int,
+                fromUser: Boolean
+            ) {
+                if (fromUser) {
+                    // progress is in seconds, seekTo expects ms
+                    PlayerController.seekTo(progress * 1000L)
+                    binding.currentTime.text = formatTime(progress * 1000L)
+                }
             }
-            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {
+                isUserSeeking = true
+            }
+
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {
+                isUserSeeking = false
+            }
         })
 
         startSeekBarUpdate()
@@ -74,10 +97,17 @@ class PlayerFragment : BottomSheetDialogFragment() {
     private fun startSeekBarUpdate() {
         seekRunnable = object : Runnable {
             override fun run() {
-                val pos = PlayerController.getCurrentPosition()
-                binding.seekBar.progress = (pos / 1000).toInt()
-                binding.currentTime.text = formatTime(pos)
-                binding.totalTime.text = formatTime(PlayerController.getDuration())
+                if (!isUserSeeking) {
+                    val posMs = PlayerController.getCurrentPosition()
+                    val durMs = PlayerController.getDuration()
+                    // seekBar progress in seconds
+                    binding.seekBar.progress = (posMs / 1000).toInt()
+                    if (binding.seekBar.max == 0 && durMs > 0) {
+                        binding.seekBar.max = (durMs / 1000).toInt()
+                    }
+                    binding.currentTime.text = formatTime(posMs)
+                    binding.totalTime.text = formatTime(durMs)
+                }
                 handler.postDelayed(this, 500)
             }
         }
