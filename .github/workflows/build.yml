@@ -1,0 +1,72 @@
+name: Build & Release StormBeats
+
+on:
+  push:
+    tags:
+      - 'v*'          # Triggers on tags like v1.0.0, v1.1.0
+  workflow_dispatch:   # Manual trigger from GitHub UI
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml') }}
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Rename APK
+        run: |
+          VERSION=${GITHUB_REF_NAME:-manual}
+          mv app/build/outputs/apk/release/app-release-unsigned.apk \
+             app/build/outputs/apk/release/StormBeats-${VERSION}.apk
+          echo "APK_PATH=app/build/outputs/apk/release/StormBeats-${VERSION}.apk" >> $GITHUB_ENV
+          echo "APK_NAME=StormBeats-${VERSION}.apk" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "StormBeats ${{ github.ref_name }}"
+          body: |
+            ## What's new in ${{ github.ref_name }}
+            
+            - Download the APK below and install it
+            - The app will notify you of future updates automatically
+            
+            **Installation:** Download → Open → Install (allow unknown sources if prompted)
+          files: ${{ env.APK_PATH }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload APK artifact (non-tag builds)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.APK_PATH }}
