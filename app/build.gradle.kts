@@ -71,6 +71,8 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.palette)
     implementation(libs.swiperefresh)
+    implementation(libs.splashscreen)
+    implementation(libs.shimmer)
     kapt(libs.room.compiler)
 
     // Compose

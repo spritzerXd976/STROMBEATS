@@ -1,11 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base -->
     <color name="black">#000000</color>
-    <color name="surface">#0D0D0D</color>
-    <color name="surface2">#111111</color>
     <color name="white">#FFFFFF</color>
-    <color name="accent">#FFFFFF</color>
-    <color name="text_primary">#FFFFFF</color>
+
+    <!-- Surface hierarchy (Material 3 elevation tones) -->
+    <color name="surface">#0A0A0A</color>
+    <color name="surface2">#121212</color>
+    <color name="surface3">#1C1C1C</color>
+    <color name="surface4">#242424</color>
+    <color name="surface_container">#1E1E1E</color>
+    <color name="surface_container_high">#282828</color>
+
+    <!-- Brand / Accent -->
+    <color name="accent">#A8D8B0</color>
+    <color name="accent_dim">#4A7A52</color>
+    <color name="on_accent">#001A07</color>
+
+    <!-- Text -->
+    <color name="text_primary">#F2F2F2</color>
     <color name="text_secondary">#AAAAAA</color>
-    <color name="text_hint">#666666</color>
+    <color name="text_hint">#555555</color>
+    <color name="text_on_surface_variant">#C4C4C4</color>
+
+    <!-- Outline / divider -->
+    <color name="outline">#2E2E2E</color>
+    <color name="outline_variant">#1E1E1E</color>
+
+    <!-- Scrim / overlay -->
+    <color name="scrim">#80000000</color>
+
+    <!-- Player gradient stops -->
+    <color name="player_gradient_top">#00000000</color>
+    <color name="player_gradient_bottom">#FF000000</color>
 </resources>
