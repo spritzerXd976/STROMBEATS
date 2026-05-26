@@ -34,12 +34,11 @@ data class NavItem(
 )
 
 val navItems = listOf(
-    NavItem("Home",    Icons.Filled.Home,    Icons.Outlined.Home),
-    NavItem("Search",  Icons.Filled.Search,  Icons.Outlined.Search),
+    NavItem("Home",    Icons.Filled.Home,          Icons.Outlined.Home),
+    NavItem("Search",  Icons.Filled.Search,        Icons.Outlined.Search),
     NavItem("Library", Icons.Rounded.LibraryMusic, Icons.Rounded.LibraryMusic),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -51,31 +50,23 @@ fun MainScreen() {
         containerColor = SurfaceDark,
         bottomBar = {
             Column {
-                // Mini player bar above nav
+                // Mini player — slides up when song plays
                 AnimatedVisibility(
                     visible = currentSong != null,
                     enter = slideInVertically { it } + fadeIn(tween(300)),
                     exit  = slideOutVertically { it } + fadeOut(tween(300)),
                 ) {
                     currentSong?.let { song ->
-                        MiniPlayerBar(
-                            song = song,
-                            isPlaying = isPlaying,
-                            onExpandClick = { showPlayer = true },
-                        )
+                        MiniPlayerBar(song = song, isPlaying = isPlaying, onExpandClick = { showPlayer = true })
                     }
                 }
 
-                // Glassmorphic nav bar
+                // Navigation bar with gradient top border
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(SurfaceDark)
+                    modifier = Modifier.fillMaxWidth().background(SurfaceDark)
                         .border(
                             width = 1.dp,
-                            brush = Brush.horizontalGradient(
-                                listOf(Color.Transparent, Color(0xFF2E2E4A), Color.Transparent)
-                            ),
+                            brush = Brush.horizontalGradient(listOf(Color.Transparent, Color(0xFF2E2E4A), Color.Transparent)),
                             shape = RoundedCornerShape(0.dp),
                         ),
                 ) {
@@ -91,9 +82,7 @@ fun MainScreen() {
                                 onClick  = { selectedTab = index },
                                 icon = {
                                     Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(RoundedCornerShape(12.dp))
+                                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp))
                                             .background(
                                                 if (isSelected)
                                                     Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.15f)))
@@ -112,7 +101,7 @@ fun MainScreen() {
                                 },
                                 label = {
                                     Text(
-                                        text  = item.label,
+                                        item.label,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontSize = 10.sp,
                                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
@@ -136,82 +125,49 @@ fun MainScreen() {
         Box(modifier = Modifier.padding(innerPadding)) {
             AnimatedContent(
                 targetState = selectedTab,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(220)) togetherWith
-                            fadeOut(animationSpec = tween(220))
-                },
-                label = "tabTransition",
+                transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(220)) },
+                label = "tabs",
             ) { tab ->
                 when (tab) {
                     0 -> HomeScreen(onShowPlayer = { showPlayer = true })
                     1 -> SearchScreen(onSongClick = { showPlayer = true })
-                    2 -> LibraryPlaceholder()
+                    2 -> LibraryScreen()
                 }
             }
         }
     }
 
-    // Full-screen player
+    // Full-screen player overlay
     AnimatedVisibility(
         visible = showPlayer && currentSong != null,
-        enter = slideInVertically(animationSpec = tween(400)) { it } + fadeIn(tween(300)),
-        exit  = slideOutVertically(animationSpec = tween(350)) { it } + fadeOut(tween(250)),
+        enter = slideInVertically(tween(400)) { it } + fadeIn(tween(300)),
+        exit  = slideOutVertically(tween(350)) { it } + fadeOut(tween(250)),
     ) {
         currentSong?.let { song ->
-            PlayerSheet(
-                song = song,
-                isPlaying = isPlaying,
-                onDismiss = { showPlayer = false },
-            )
+            PlayerSheet(song = song, isPlaying = isPlaying, onDismiss = { showPlayer = false })
         }
     }
 }
 
 @Composable
-private fun LibraryPlaceholder() {
+private fun LibraryScreen() {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SurfaceDark)
-            .statusBarsPadding(),
+        modifier = Modifier.fillMaxSize().background(SurfaceDark).statusBarsPadding(),
         contentAlignment = Alignment.Center,
     ) {
-        // Ambient orb
+        // Ambient glow
         Box(
-            modifier = Modifier
-                .size(300.dp)
-                .offset(y = (-80).dp)
-                .background(VioletPrimary.copy(0.1f), CircleShape)
+            modifier = Modifier.size(320.dp).offset(y = (-80).dp)
+                .background(VioletPrimary.copy(0.08f), CircleShape)
         )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
+                modifier = Modifier.size(84.dp).clip(CircleShape)
                     .background(Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.15f)))),
                 contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Rounded.LibraryMusic,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = VioletSoft,
-                )
-            }
-            Text(
-                "Your Library",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-            )
-            Text(
-                "Coming soon",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6666AA),
-            )
+            ) { Icon(Icons.Rounded.LibraryMusic, null, modifier = Modifier.size(42.dp), tint = VioletSoft) }
+            Text("Your Library", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Coming soon", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF6666AA))
         }
     }
 }

@@ -14,29 +14,33 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.stormbeats.app.R
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Fonts
+// ─────────────────────────────────────────────────────────────────────────────
+
 val PoppinsFamily = FontFamily(
-    Font(R.font.poppins_regular, FontWeight.Normal),
-    Font(R.font.poppins_medium, FontWeight.Medium),
+    Font(R.font.poppins_regular,  FontWeight.Normal),
+    Font(R.font.poppins_medium,   FontWeight.Medium),
     Font(R.font.poppins_semibold, FontWeight.SemiBold),
-    Font(R.font.poppins_bold, FontWeight.Bold),
+    Font(R.font.poppins_bold,     FontWeight.Bold),
 )
 
 val StormBeatsTypography = Typography(
-    displayLarge  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 57.sp, lineHeight = 64.sp),
-    displayMedium = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 45.sp, lineHeight = 52.sp),
-    displaySmall  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 36.sp, lineHeight = 44.sp),
+    displayLarge   = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 57.sp, lineHeight = 64.sp),
+    displayMedium  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 45.sp, lineHeight = 52.sp),
+    displaySmall   = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 36.sp, lineHeight = 44.sp),
     headlineLarge  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 32.sp, lineHeight = 40.sp),
     headlineMedium = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, lineHeight = 36.sp),
     headlineSmall  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 32.sp),
-    titleLarge  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp),
-    titleMedium = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 16.sp, lineHeight = 24.sp),
-    titleSmall  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 14.sp, lineHeight = 20.sp),
-    bodyLarge   = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 16.sp, lineHeight = 24.sp),
-    bodyMedium  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 14.sp, lineHeight = 20.sp),
-    bodySmall   = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 12.sp, lineHeight = 16.sp),
-    labelLarge  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 14.sp, lineHeight = 20.sp),
-    labelMedium = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 12.sp, lineHeight = 16.sp),
-    labelSmall  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 11.sp, lineHeight = 16.sp),
+    titleLarge     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp),
+    titleMedium    = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 16.sp, lineHeight = 24.sp),
+    titleSmall     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 14.sp, lineHeight = 20.sp),
+    bodyLarge      = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 16.sp, lineHeight = 24.sp),
+    bodyMedium     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 14.sp, lineHeight = 20.sp),
+    bodySmall      = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 12.sp, lineHeight = 16.sp),
+    labelLarge     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 14.sp, lineHeight = 20.sp),
+    labelMedium    = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 12.sp, lineHeight = 16.sp),
+    labelSmall     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 11.sp, lineHeight = 16.sp),
 )
 
 val StormBeatsShapes = Shapes(
@@ -47,18 +51,21 @@ val StormBeatsShapes = Shapes(
     extraLarge = RoundedCornerShape(32.dp),
 )
 
-// Bixy-inspired vibrant palette
-val VioletPrimary     = Color(0xFF7C3AED)   // deep violet
-val PinkAccent        = Color(0xFFEC4899)   // hot pink
-val CyanAccent        = Color(0xFF06B6D4)   // cyan
-val VioletSoft        = Color(0xFF8B5CF6)   // lighter violet
-val PinkSoft          = Color(0xFFF472B6)   // soft pink
-val GradientStart     = Color(0xFF7C3AED)
-val GradientEnd       = Color(0xFFEC4899)
-val SurfaceDark       = Color(0xFF0D0D14)
-val SurfaceCard       = Color(0xFF13131E)
-val SurfaceElevated   = Color(0xFF1A1A2E)
-val OnAccent          = Color(0xFFFFFFFF)
+// ─────────────────────────────────────────────────────────────────────────────
+// Colour palette — Premium dark violet/pink
+// ─────────────────────────────────────────────────────────────────────────────
+
+val VioletPrimary   = Color(0xFF7C3AED)
+val PinkAccent      = Color(0xFFEC4899)
+val CyanAccent      = Color(0xFF06B6D4)
+val VioletSoft      = Color(0xFF8B5CF6)
+val PinkSoft        = Color(0xFFF472B6)
+val GradientStart   = Color(0xFF7C3AED)
+val GradientEnd     = Color(0xFFEC4899)
+val SurfaceDark     = Color(0xFF0D0D14)
+val SurfaceCard     = Color(0xFF13131E)
+val SurfaceElevated = Color(0xFF1A1A2E)
+val OnAccent        = Color(0xFFFFFFFF)
 
 private val DarkColorScheme = darkColorScheme(
     primary              = VioletPrimary,
@@ -92,6 +99,10 @@ private val DarkColorScheme = darkColorScheme(
     onError              = Color(0xFFFFFFFF),
     onErrorContainer     = Color(0xFFFFB3B3),
 )
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Theme
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun StormBeatsTheme(
