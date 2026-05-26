@@ -3,7 +3,9 @@ package com.stormbeats.app.ui.compose
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -16,9 +18,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 
 data class NavItem(
@@ -42,7 +48,7 @@ fun MainScreen() {
     val isPlaying   by PlayerController.isPlaying.collectAsState()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = SurfaceDark,
         bottomBar = {
             Column {
                 // Mini player bar above nav
@@ -60,35 +66,68 @@ fun MainScreen() {
                     }
                 }
 
-                NavigationBar(
-                    containerColor = Color(0xFF0A0A0A),
-                    tonalElevation = 0.dp,
-                ) {
-                    navItems.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            selected = selectedTab == index,
-                            onClick  = { selectedTab = index },
-                            icon = {
-                                Icon(
-                                    imageVector = if (selectedTab == index) item.selectedIcon else item.unselectedIcon,
-                                    contentDescription = item.label,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text  = item.label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor   = MaterialTheme.colorScheme.primary,
-                                selectedTextColor   = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = Color(0xFF666666),
-                                unselectedTextColor = Color(0xFF666666),
-                                indicatorColor      = Color.Transparent,
+                // Glassmorphic nav bar
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(SurfaceDark)
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.horizontalGradient(
+                                listOf(Color.Transparent, Color(0xFF2E2E4A), Color.Transparent)
                             ),
-                        )
+                            shape = RoundedCornerShape(0.dp),
+                        ),
+                ) {
+                    NavigationBar(
+                        containerColor = Color.Transparent,
+                        tonalElevation = 0.dp,
+                        modifier = Modifier.navigationBarsPadding(),
+                    ) {
+                        navItems.forEachIndexed { index, item ->
+                            val isSelected = selectedTab == index
+                            NavigationBarItem(
+                                selected = isSelected,
+                                onClick  = { selectedTab = index },
+                                icon = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(
+                                                if (isSelected)
+                                                    Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.15f)))
+                                                else
+                                                    Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+                                            ),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                                            contentDescription = item.label,
+                                            modifier = Modifier.size(22.dp),
+                                            tint = if (isSelected) VioletSoft else Color(0xFF4A4A6A),
+                                        )
+                                    }
+                                },
+                                label = {
+                                    Text(
+                                        text  = item.label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 10.sp,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                        color = if (isSelected) VioletSoft else Color(0xFF4A4A6A),
+                                    )
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor   = VioletSoft,
+                                    selectedTextColor   = VioletSoft,
+                                    unselectedIconColor = Color(0xFF4A4A6A),
+                                    unselectedTextColor = Color(0xFF4A4A6A),
+                                    indicatorColor      = Color.Transparent,
+                                ),
+                            )
+                        }
                     }
                 }
             }
@@ -133,29 +172,45 @@ private fun LibraryPlaceholder() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(SurfaceDark)
             .statusBarsPadding(),
         contentAlignment = Alignment.Center,
     ) {
+        // Ambient orb
+        Box(
+            modifier = Modifier
+                .size(300.dp)
+                .offset(y = (-80).dp)
+                .background(VioletPrimary.copy(0.1f), CircleShape)
+        )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Icon(
-                Icons.Rounded.LibraryMusic,
-                contentDescription = null,
-                modifier = Modifier.size(72.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-            )
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.15f)))),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Rounded.LibraryMusic,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = VioletSoft,
+                )
+            }
             Text(
                 "Your Library",
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
             )
             Text(
                 "Coming soon",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color(0xFF6666AA),
             )
         }
     }

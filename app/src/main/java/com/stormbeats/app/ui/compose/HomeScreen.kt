@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -26,18 +28,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 import com.stormbeats.app.util.UpdateManager
 
-private data class MoodChip(val label: String, val icon: ImageVector, val color: Color)
+private data class MoodChip(val label: String, val icon: ImageVector, val gradient: List<Color>)
 
 private val moods = listOf(
-    MoodChip("Workout",   Icons.Rounded.FitnessCenter,       Color(0xFFFF5252)),
-    MoodChip("Energize",  Icons.Rounded.Bolt,                Color(0xFFFFD740)),
-    MoodChip("Relax",     Icons.Rounded.SelfImprovement,     Color(0xFF64B5F6)),
-    MoodChip("Feel good", Icons.Rounded.SentimentSatisfied,  Color(0xFFBA68C8)),
-    MoodChip("Chill",     Icons.Rounded.NightsStay,          Color(0xFF4DD0E1)),
-    MoodChip("Focus",     Icons.Rounded.Headphones,          Color(0xFF81C784)),
+    MoodChip("Workout",   Icons.Rounded.FitnessCenter,      listOf(Color(0xFFFF6B6B), Color(0xFFEE5A24))),
+    MoodChip("Energize",  Icons.Rounded.Bolt,               listOf(Color(0xFFFECA57), Color(0xFFFF9F43))),
+    MoodChip("Relax",     Icons.Rounded.SelfImprovement,    listOf(Color(0xFF48CAE4), Color(0xFF0096C7))),
+    MoodChip("Vibes",     Icons.Rounded.SentimentSatisfied, listOf(GradientStart, GradientEnd)),
+    MoodChip("Chill",     Icons.Rounded.NightsStay,         listOf(Color(0xFF6C5CE7), Color(0xFFA29BFE))),
+    MoodChip("Focus",     Icons.Rounded.Headphones,         listOf(Color(0xFF00B894), Color(0xFF00CEC9))),
 )
 
 @Composable
@@ -60,7 +63,7 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
     if (showUpdateDialog && updateResult != null) {
         AlertDialog(
             onDismissRequest = { showUpdateDialog = false },
-            icon  = { Icon(Icons.Rounded.SystemUpdate, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            icon  = { Icon(Icons.Rounded.SystemUpdate, contentDescription = null, tint = VioletPrimary) },
             title = { Text("Update Available", fontWeight = FontWeight.Bold) },
             text  = {
                 Text(
@@ -74,117 +77,157 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                         UpdateManager.downloadAndInstall(context, updateResult!!.downloadUrl, updateResult!!.release.tagName)
                         showUpdateDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = VioletPrimary,
+                    ),
                 ) { Text("Update Now") }
             },
             dismissButton = {
                 TextButton(onClick = { showUpdateDialog = false }) { Text("Later") }
             },
-            containerColor = Color(0xFF1A1A1A),
+            containerColor = SurfaceCard,
         )
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(SurfaceDark)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState()),
     ) {
 
-        // ── Top Bar ────────────────────────────────────────────────
-        Row(
+        // ── Ambient orbs at top ─────────────────────────────────────
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .height(220.dp),
         ) {
-            // Logo + Brand
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f),
-            ) {
-                Box(
+            // Violet orb
+            Box(
+                modifier = Modifier
+                    .size(280.dp)
+                    .offset(x = (-40).dp, y = (-60).dp)
+                    .blur(80.dp)
+                    .background(VioletPrimary.copy(alpha = 0.25f), CircleShape)
+            )
+            // Pink orb
+            Box(
+                modifier = Modifier
+                    .size(220.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = 40.dp, y = (-40).dp)
+                    .blur(80.dp)
+                    .background(PinkAccent.copy(alpha = 0.2f), CircleShape)
+            )
+
+            // ── Top Bar ────────────────────────────────────────────
+            Column {
+                Row(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(Color(0xFFFF0000), Color(0xFFCC0000))
-                            )
-                        ),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        Icons.Rounded.Bolt,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp),
-                    )
+                    // Logo + Brand
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        colors = listOf(VioletPrimary, PinkAccent)
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.Bolt,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(26.dp),
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                "StormBeats",
+                                style     = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color     = Color.White,
+                            )
+                            Text(
+                                "Good evening ✨",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF8888AA),
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SurfaceElevated.copy(alpha = 0.6f))
+                            .clickable {},
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Outlined.Notifications, contentDescription = null, tint = Color(0xFF9999BB), modifier = Modifier.size(20.dp))
+                    }
                 }
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(
-                        "StormBeats",
-                        style     = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color     = Color.White,
-                    )
-                    Text(
-                        "Good evening",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF888888),
-                    )
+
+                // ── Mood Chips ─────────────────────────────────────
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(moods) { mood ->
+                        val idx = moods.indexOf(mood)
+                        val isSelected = selectedMood == idx
+                        val chipBg = if (isSelected)
+                            Brush.linearGradient(mood.gradient)
+                        else
+                            Brush.linearGradient(listOf(SurfaceElevated, SurfaceElevated))
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50.dp))
+                                .background(chipBg)
+                                .border(
+                                    width = if (isSelected) 0.dp else 1.dp,
+                                    brush = if (isSelected) Brush.linearGradient(mood.gradient) else Brush.linearGradient(listOf(Color(0xFF2E2E4A), Color(0xFF2E2E4A))),
+                                    shape = RoundedCornerShape(50.dp),
+                                )
+                                .clickable { selectedMood = if (isSelected) -1 else idx }
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            ) {
+                                Icon(
+                                    mood.icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(13.dp),
+                                    tint = if (isSelected) Color.White else mood.gradient[0],
+                                )
+                                Text(
+                                    mood.label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (isSelected) Color.White else Color(0xFFAAAACC),
+                                    fontSize = 12.sp,
+                                )
+                            }
+                        }
+                    }
                 }
-            }
-            IconButton(onClick = {}) {
-                Icon(Icons.Outlined.Notifications, contentDescription = null, tint = Color(0xFF888888))
             }
         }
 
-        // ── Mood Chips ─────────────────────────────────────────────
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(moods) { mood ->
-                val idx = moods.indexOf(mood)
-                val isSelected = selectedMood == idx
-                FilterChip(
-                    selected = isSelected,
-                    onClick  = { selectedMood = if (isSelected) -1 else idx },
-                    label = {
-                        Text(
-                            mood.label,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (isSelected) Color.White else Color(0xFFAAAAAA),
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            mood.icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = if (isSelected) Color.White else mood.color,
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = mood.color.copy(alpha = 0.25f),
-                        containerColor = Color(0xFF1A1A1A),
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = isSelected,
-                        borderColor = Color(0xFF2A2A2A),
-                        selectedBorderColor = mood.color.copy(alpha = 0.5f),
-                        borderWidth = 1.dp,
-                        selectedBorderWidth = 1.dp,
-                    ),
-                )
-            }
-        }
-
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
 
         // ── Now Playing Hero Card ──────────────────────────────────
         AnimatedContent(
@@ -197,7 +240,7 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(20.dp))
+                        .clip(RoundedCornerShape(24.dp))
                         .clickable(onClick = onShowPlayer),
                 ) {
                     // Blurred album art background
@@ -208,30 +251,34 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(160.dp)
-                                .blur(30.dp),
+                                .height(180.dp)
+                                .blur(40.dp),
                             contentScale = ContentScale.Crop,
                         )
                     } else {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(160.dp)
+                                .height(180.dp)
                                 .background(
                                     Brush.linearGradient(
-                                        listOf(Color(0xFF1A0000), Color(0xFF330000))
+                                        listOf(Color(0xFF1A0A3A), Color(0xFF2D1566))
                                     )
                                 )
                         )
                     }
-                    // Dark overlay
+                    // Gradient overlay
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(160.dp)
-                            .background(Color(0xCC000000))
+                            .height(180.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color(0xBB0D0D14), Color(0xDD0D0D14))
+                                )
+                            )
                     )
-                    // Red top accent line
+                    // Top gradient accent
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -239,21 +286,26 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                             .align(Alignment.TopCenter)
                             .background(
                                 Brush.horizontalGradient(
-                                    listOf(Color.Transparent, Color(0xFFFF0000), Color.Transparent)
+                                    listOf(Color.Transparent, VioletPrimary, PinkAccent, Color.Transparent)
                                 )
                             )
                     )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(18.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         // Album art
                         Box(
                             modifier = Modifier
-                                .size(72.dp)
-                                .clip(RoundedCornerShape(12.dp)),
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .border(
+                                    width = 1.5.dp,
+                                    brush = Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.5f))),
+                                    shape = RoundedCornerShape(16.dp),
+                                ),
                         ) {
                             if (imageUrl.isNotEmpty()) {
                                 AsyncImage(
@@ -266,10 +318,10 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                                 Box(
                                     Modifier
                                         .fillMaxSize()
-                                        .background(Color(0xFF2A0000)),
+                                        .background(Brush.linearGradient(listOf(Color(0xFF1A0A3A), Color(0xFF2D1566)))),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    Icon(Icons.Rounded.MusicNote, null, tint = Color(0xFFFF0000), modifier = Modifier.size(32.dp))
+                                    Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(36.dp))
                                 }
                             }
                         }
@@ -277,8 +329,8 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                         Column(modifier = Modifier.weight(1f)) {
                             val infiniteTransition = rememberInfiniteTransition(label = "pulse")
                             val pulse by infiniteTransition.animateFloat(
-                                0.5f, 1f,
-                                infiniteRepeatable(tween(700), RepeatMode.Reverse),
+                                0.4f, 1f,
+                                infiniteRepeatable(tween(800), RepeatMode.Reverse),
                                 label = "pulse",
                             )
                             Row(
@@ -289,12 +341,15 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                                     Modifier
                                         .size(6.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFFFF0000).copy(alpha = pulse))
+                                        .background(
+                                            Brush.linearGradient(listOf(VioletPrimary, PinkAccent))
+                                        )
+                                        .then(Modifier.background(VioletPrimary.copy(alpha = pulse), CircleShape))
                                 )
                                 Text(
                                     "NOW PLAYING",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFFFF0000),
+                                    color = PinkSoft,
                                     letterSpacing = 1.5.sp,
                                     fontSize = 9.sp,
                                 )
@@ -310,7 +365,7 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                             Text(
                                 song.getPrimaryArtist(),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFFAAAAAA),
+                                color = Color(0xFF9999BB),
                                 maxLines = 1,
                             )
                         }
@@ -319,28 +374,28 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                             onClick = { PlayerController.playPrevious() },
                             modifier = Modifier.size(36.dp),
                         ) {
-                            Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(22.dp))
+                            Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(22.dp))
                         }
-                        FilledIconButton(
-                            onClick = { PlayerController.togglePlayPause() },
-                            modifier = Modifier.size(48.dp),
-                            colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = Color(0xFFFF0000),
-                                contentColor   = Color.White,
-                            ),
-                            shape = CircleShape,
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
+                                .clickable { PlayerController.togglePlayPause() },
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                                 null,
-                                modifier = Modifier.size(26.dp),
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp),
                             )
                         }
                         IconButton(
                             onClick = { PlayerController.playNext() },
                             modifier = Modifier.size(36.dp),
                         ) {
-                            Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(22.dp))
+                            Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(22.dp))
                         }
                     }
                 }
@@ -350,31 +405,44 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .height(140.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFF141414))
-                        .border(1.dp, Color(0xFF2A2A2A), RoundedCornerShape(20.dp)),
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(SurfaceCard)
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.linearGradient(listOf(Color(0xFF2E2E4A), Color(0xFF1E1E32))),
+                            shape = RoundedCornerShape(24.dp),
+                        ),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Icon(
-                            Icons.Rounded.LibraryMusic,
-                            null,
-                            modifier = Modifier.size(48.dp),
-                            tint = Color(0xFF333333),
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(Brush.linearGradient(listOf(VioletPrimary.copy(0.15f), PinkAccent.copy(0.15f)))),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.LibraryMusic,
+                                null,
+                                modifier = Modifier.size(28.dp),
+                                tint = VioletSoft,
+                            )
+                        }
                         Text(
                             "Nothing playing yet",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF555555),
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF7777AA),
                         )
                         Text(
-                            "Search for music to start listening",
+                            "Search for music to start vibing",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF3A3A3A),
+                            color = Color(0xFF44445A),
                         )
                     }
                 }
@@ -397,71 +465,111 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                 color = Color.White,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = {}) {
-                Text("Play all", style = MaterialTheme.typography.labelLarge, color = Color(0xFF888888))
-            }
+            Text(
+                "Play all",
+                style = MaterialTheme.typography.labelLarge,
+                color = VioletSoft,
+                modifier = Modifier.clickable {},
+            )
         }
-        Spacer(Modifier.height(8.dp))
-        QuickPickRow(Icons.Rounded.MusicNote,  Color(0xFFCE93D8), Color(0xFF2A0050), "Search your favourites", "Use the Search tab")
-        QuickPickRow(Icons.Rounded.History,     Color(0xFF90CAF9), Color(0xFF001A3A), "Recently played",       "Will appear here automatically")
-        QuickPickRow(Icons.Rounded.Favorite,    Color(0xFFEF9A9A), Color(0xFF3A0000), "Liked songs",           "Tap ♥ while playing")
+        Spacer(Modifier.height(12.dp))
+        QuickPickRow(Icons.Rounded.MusicNote,  listOf(Color(0xFF8B5CF6), Color(0xFFA78BFA)), "Search your favourites", "Use the Search tab")
+        QuickPickRow(Icons.Rounded.History,     listOf(Color(0xFF06B6D4), Color(0xFF67E8F9)), "Recently played",       "Will appear here automatically")
+        QuickPickRow(Icons.Rounded.Favorite,    listOf(Color(0xFFEC4899), Color(0xFFF9A8D4)), "Liked songs",           "Tap ♥ while playing")
 
         Spacer(Modifier.height(32.dp))
 
         // ── Keep Listening ─────────────────────────────────────────
-        Text(
-            "Keep listening",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Keep listening",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "See all",
+                style = MaterialTheme.typography.labelLarge,
+                color = VioletSoft,
+                modifier = Modifier.clickable {},
+            )
+        }
         Spacer(Modifier.height(16.dp))
         LazyRow(
             contentPadding = PaddingValues(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             val cards = listOf(
-                Triple(Color(0xFF0D0D2B), Color(0xFF2A0060), "Deep Focus"),
-                Triple(Color(0xFF0A1A0A), Color(0xFF003320), "Late Night"),
-                Triple(Color(0xFF1A0A0A), Color(0xFF3A1200), "Bharat Hits"),
-                Triple(Color(0xFF0A0A1A), Color(0xFF00104A), "Old School"),
-                Triple(Color(0xFF1A1A0A), Color(0xFF3A2A00), "Party Mix"),
+                Triple(listOf(Color(0xFF1A0A3A), Color(0xFF3D1A7A)), listOf(VioletPrimary, VioletSoft), "Deep Focus"),
+                Triple(listOf(Color(0xFF0A1A2A), Color(0xFF0D3060)), listOf(CyanAccent, Color(0xFF0EA5E9)), "Late Night"),
+                Triple(listOf(Color(0xFF2A0A1A), Color(0xFF60103A)), listOf(PinkAccent, PinkSoft), "Bharat Hits"),
+                Triple(listOf(Color(0xFF0A0A2A), Color(0xFF1A1060)), listOf(Color(0xFF6366F1), Color(0xFF818CF8)), "Old School"),
+                Triple(listOf(Color(0xFF1A0A0A), Color(0xFF4A1508)), listOf(Color(0xFFFF6B6B), Color(0xFFFF8E53)), "Party Mix"),
             )
             val subs = listOf("Instrumental", "R&B Vibes", "Bollywood", "90s Classics", "Dance & EDM")
             items(cards.size) { i ->
-                val (bg1, bg2, title) = cards[i]
-                AlbumCard(bg1, bg2, title, subs[i])
+                val (bgs, accents, title) = cards[i]
+                AlbumCard(bgs, accents, title, subs[i])
             }
         }
 
         Spacer(Modifier.height(32.dp))
 
         // ── HiFi Badge ─────────────────────────────────────────────
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFF0F0F0F))
-                .border(1.dp, Color(0xFF2A0000), RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(20.dp))
+                .background(SurfaceCard)
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(listOf(VioletPrimary.copy(0.4f), PinkAccent.copy(0.3f))),
+                    shape = RoundedCornerShape(20.dp),
+                )
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Icon(Icons.Rounded.HighQuality, null, tint = Color(0xFFFF0000), modifier = Modifier.size(32.dp))
-            Column {
-                Text(
-                    "320kbps HiFi Audio",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFF0000),
-                )
-                Text(
-                    "Lossless streaming via JioSaavn",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF888888),
-                )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.2f)))),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Rounded.HighQuality, null, tint = VioletSoft, modifier = Modifier.size(28.dp))
+                }
+                Column {
+                    Text(
+                        "320kbps HiFi Audio",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        "Lossless streaming via JioSaavn",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF7777AA),
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50.dp))
+                        .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
+                    Text("HiFi", style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.Bold)
+                }
             }
         }
 
@@ -470,7 +578,7 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
 }
 
 @Composable
-private fun QuickPickRow(icon: ImageVector, iconTint: Color, iconBg: Color, title: String, subtitle: String) {
+private fun QuickPickRow(icon: ImageVector, gradient: List<Color>, title: String, subtitle: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -480,51 +588,61 @@ private fun QuickPickRow(icon: ImageVector, iconTint: Color, iconBg: Color, titl
     ) {
         Box(
             modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(iconBg),
+                .size(54.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Brush.linearGradient(gradient.map { it.copy(alpha = 0.15f) }))
+                .border(
+                    1.dp,
+                    Brush.linearGradient(gradient.map { it.copy(0.3f) }),
+                    RoundedCornerShape(14.dp),
+                ),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, null, tint = iconTint, modifier = Modifier.size(24.dp))
+            Icon(icon, null, tint = gradient[0], modifier = Modifier.size(24.dp))
         }
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(title,    style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Color.White)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall,  color = Color(0xFF777777))
+            Text(subtitle, style = MaterialTheme.typography.bodySmall,  color = Color(0xFF6666AA))
         }
-        Icon(Icons.Rounded.ChevronRight, null, tint = Color(0xFF444444), modifier = Modifier.size(20.dp))
+        Icon(Icons.Rounded.ChevronRight, null, tint = Color(0xFF3A3A5A), modifier = Modifier.size(20.dp))
     }
 }
 
 @Composable
-private fun AlbumCard(gradientStart: Color, gradientEnd: Color, title: String, subtitle: String) {
-    Column(modifier = Modifier.width(140.dp)) {
+private fun AlbumCard(bgGradient: List<Color>, accentGradient: List<Color>, title: String, subtitle: String) {
+    Column(modifier = Modifier.width(148.dp)) {
         Box(
             modifier = Modifier
-                .size(140.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Brush.linearGradient(listOf(gradientStart, gradientEnd))),
+                .size(148.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(Brush.linearGradient(bgGradient))
+                .border(
+                    1.dp,
+                    Brush.linearGradient(accentGradient.map { it.copy(0.3f) }),
+                    RoundedCornerShape(20.dp),
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 Icons.Rounded.Album, null,
-                tint = Color.White.copy(alpha = 0.15f),
-                modifier = Modifier.size(70.dp),
+                tint = Color.White.copy(alpha = 0.08f),
+                modifier = Modifier.size(80.dp),
             )
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(8.dp)
-                    .size(34.dp)
+                    .padding(10.dp)
+                    .size(36.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFF0000)),
+                    .background(Brush.linearGradient(accentGradient)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(20.dp))
             }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(10.dp))
         Text(title,    style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1)
-        Text(subtitle, style = MaterialTheme.typography.bodySmall,  color = Color(0xFF777777),       maxLines = 1)
+        Text(subtitle, style = MaterialTheme.typography.bodySmall,  color = Color(0xFF6666AA),       maxLines = 1)
     }
 }

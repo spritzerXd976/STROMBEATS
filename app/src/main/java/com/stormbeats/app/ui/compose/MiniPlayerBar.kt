@@ -2,6 +2,7 @@ package com.stormbeats.app.ui.compose
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.stormbeats.app.data.model.Song
+import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 
 @Composable
@@ -30,14 +32,18 @@ fun MiniPlayerBar(
     onExpandClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
+    val infiniteTransition = rememberInfiniteTransition(label = "mini")
     val shimmerX by infiniteTransition.animateFloat(
-        initialValue = -400f, targetValue = 800f,
-        animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing)),
+        initialValue = -500f, targetValue = 1000f,
+        animationSpec = infiniteRepeatable(tween(2200, easing = LinearEasing)),
         label = "shimmerX",
     )
+    val breathe by infiniteTransition.animateFloat(
+        0.5f, 1f,
+        infiniteRepeatable(tween(1200), RepeatMode.Reverse),
+        label = "breathe",
+    )
 
-    // Progress for seekbar in mini player
     var positionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember { mutableLongStateOf(1L) }
 
@@ -54,9 +60,19 @@ fun MiniPlayerBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 5.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFF161616))
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(SurfaceCard)
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    if (isPlaying)
+                        listOf(VioletPrimary.copy(0.4f), PinkAccent.copy(0.3f))
+                    else
+                        listOf(Color(0xFF2E2E4A), Color(0xFF1E1E32))
+                ),
+                shape = RoundedCornerShape(20.dp),
+            )
             .clickable(onClick = onExpandClick),
     ) {
         // Progress bar at bottom
@@ -65,7 +81,9 @@ fun MiniPlayerBar(
                 .fillMaxWidth(progress)
                 .height(2.dp)
                 .align(Alignment.BottomStart)
-                .background(Color(0xFFFF0000))
+                .background(
+                    Brush.horizontalGradient(listOf(VioletPrimary, PinkAccent))
+                )
         )
 
         // Shimmer when playing
@@ -77,9 +95,9 @@ fun MiniPlayerBar(
                     .align(Alignment.TopCenter)
                     .background(
                         Brush.horizontalGradient(
-                            colors = listOf(Color.Transparent, Color(0x99FF0000), Color.Transparent),
+                            colors = listOf(Color.Transparent, VioletPrimary.copy(0.6f), PinkAccent.copy(0.6f), Color.Transparent),
                             startX = shimmerX,
-                            endX   = shimmerX + 400f,
+                            endX   = shimmerX + 500f,
                         )
                     )
             )
@@ -88,25 +106,38 @@ fun MiniPlayerBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Album art with pulse ring when playing
-            Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            // Album art
+            Box(modifier = Modifier.size(50.dp), contentAlignment = Alignment.Center) {
                 if (isPlaying) {
-                    val pulse by infiniteTransition.animateFloat(
-                        1f, 1.15f,
-                        infiniteRepeatable(tween(800), RepeatMode.Reverse),
-                        label = "artPulse",
-                    )
                     Box(
                         Modifier
-                            .size((48 * pulse).dp)
-                            .clip(RoundedCornerShape((12 * pulse).dp))
-                            .background(Color(0x33FF0000))
+                            .size((50 * (0.95f + breathe * 0.1f)).dp)
+                            .clip(RoundedCornerShape((13 * (0.95f + breathe * 0.1f)).dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(VioletPrimary.copy(alpha = breathe * 0.3f), PinkAccent.copy(alpha = breathe * 0.2f))
+                                )
+                            )
                     )
                 }
-                Box(modifier = Modifier.size(46.dp).clip(RoundedCornerShape(11.dp))) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(13.dp))
+                        .border(
+                            1.dp,
+                            Brush.linearGradient(
+                                if (isPlaying)
+                                    listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.5f))
+                                else
+                                    listOf(Color(0xFF2E2E4A), Color(0xFF2E2E4A))
+                            ),
+                            RoundedCornerShape(13.dp),
+                        ),
+                ) {
                     val imageUrl = song.getImageUrl()
                     if (imageUrl.isNotEmpty()) {
                         AsyncImage(
@@ -117,10 +148,12 @@ fun MiniPlayerBar(
                         )
                     } else {
                         Box(
-                            Modifier.fillMaxSize().background(Color(0xFF2A0000)),
+                            Modifier
+                                .fillMaxSize()
+                                .background(Brush.linearGradient(listOf(Color(0xFF1A0A3A), Color(0xFF2D1566)))),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(Icons.Rounded.MusicNote, null, tint = Color(0xFFFF0000))
+                            Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(22.dp))
                         }
                     }
                 }
@@ -140,7 +173,7 @@ fun MiniPlayerBar(
                 Text(
                     song.getPrimaryArtist(),
                     style    = MaterialTheme.typography.bodySmall,
-                    color    = Color(0xFF888888),
+                    color    = Color(0xFF7777AA),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -148,32 +181,44 @@ fun MiniPlayerBar(
 
             Spacer(Modifier.width(4.dp))
 
-            IconButton(
-                onClick = { PlayerController.playPrevious() },
-                modifier = Modifier.size(36.dp),
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(SurfaceElevated)
+                    .clickable { PlayerController.playPrevious() },
+                contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(22.dp))
+                Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(18.dp))
             }
+
+            Spacer(Modifier.width(8.dp))
 
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFF0000))
+                    .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
                     .clickable { PlayerController.togglePlayPause() },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    null, tint = Color.White, modifier = Modifier.size(22.dp),
+                    null, tint = Color.White, modifier = Modifier.size(24.dp),
                 )
             }
 
-            IconButton(
-                onClick = { PlayerController.playNext() },
-                modifier = Modifier.size(36.dp),
+            Spacer(Modifier.width(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(SurfaceElevated)
+                    .clickable { PlayerController.playNext() },
+                contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(22.dp))
+                Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(18.dp))
             }
         }
     }
