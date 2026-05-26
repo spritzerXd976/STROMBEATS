@@ -4,6 +4,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -30,72 +31,97 @@ fun MiniPlayerBar(
     modifier: Modifier = Modifier,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
-    val shimmerOffset by infiniteTransition.animateFloat(
-        initialValue = 0f, targetValue = 1f,
+    val shimmerX by infiniteTransition.animateFloat(
+        initialValue = -400f, targetValue = 800f,
         animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing)),
-        label = "shimmer",
+        label = "shimmerX",
     )
+
+    // Progress for seekbar in mini player
+    var positionMs by remember { mutableLongStateOf(0L) }
+    var durationMs by remember { mutableLongStateOf(1L) }
+
+    LaunchedEffect(song) {
+        while (true) {
+            positionMs = PlayerController.getCurrentPosition()
+            durationMs = PlayerController.getDuration().coerceAtLeast(1L)
+            kotlinx.coroutines.delay(500)
+        }
+    }
+
+    val progress = (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xFF161616))
             .clickable(onClick = onExpandClick),
     ) {
-        // Shimmer progress indicator at top
+        // Progress bar at bottom
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(progress)
+                .height(2.dp)
+                .align(Alignment.BottomStart)
+                .background(Color(0xFFFF0000))
+        )
+
+        // Shimmer when playing
         if (isPlaying) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(2.dp)
+                    .height(1.dp)
                     .align(Alignment.TopCenter)
                     .background(
                         Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                MaterialTheme.colorScheme.primary,
-                                Color.Transparent,
-                            ),
-                            startX = shimmerOffset * 900f - 200f,
-                            endX   = shimmerOffset * 900f + 200f,
+                            colors = listOf(Color.Transparent, Color(0x99FF0000), Color.Transparent),
+                            startX = shimmerX,
+                            endX   = shimmerX + 400f,
                         )
                     )
             )
         }
 
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Album art
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                val imageUrl = song.getImageUrl()
-                if (imageUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = song.name,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
+            // Album art with pulse ring when playing
+            Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                if (isPlaying) {
+                    val pulse by infiniteTransition.animateFloat(
+                        1f, 1.15f,
+                        infiniteRepeatable(tween(800), RepeatMode.Reverse),
+                        label = "artPulse",
                     )
-                } else {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Rounded.MusicNote,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                        Modifier
+                            .size((48 * pulse).dp)
+                            .clip(RoundedCornerShape((12 * pulse).dp))
+                            .background(Color(0x33FF0000))
+                    )
+                }
+                Box(modifier = Modifier.size(46.dp).clip(RoundedCornerShape(11.dp))) {
+                    val imageUrl = song.getImageUrl()
+                    if (imageUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = song.name,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
                         )
+                    } else {
+                        Box(
+                            Modifier.fillMaxSize().background(Color(0xFF2A0000)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(Icons.Rounded.MusicNote, null, tint = Color(0xFFFF0000))
+                        }
                     }
                 }
             }
@@ -105,16 +131,16 @@ fun MiniPlayerBar(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     song.name,
-                    style = MaterialTheme.typography.titleSmall,
+                    style      = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    color      = Color.White,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis,
                 )
                 Text(
                     song.getPrimaryArtist(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = Color(0xFF888888),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -122,30 +148,32 @@ fun MiniPlayerBar(
 
             Spacer(Modifier.width(4.dp))
 
-            // Play / Pause
             IconButton(
-                onClick = { PlayerController.togglePlayPause() },
-                modifier = Modifier.size(40.dp),
+                onClick = { PlayerController.playPrevious() },
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(22.dp))
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFFF0000))
+                    .clickable { PlayerController.togglePlayPause() },
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(26.dp),
+                    null, tint = Color.White, modifier = Modifier.size(22.dp),
                 )
             }
 
-            // Skip Next
             IconButton(
                 onClick = { PlayerController.playNext() },
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(36.dp),
             ) {
-                Icon(
-                    Icons.Rounded.SkipNext,
-                    contentDescription = "Next",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp),
-                )
+                Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(22.dp))
             }
         }
     }

@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.LibraryMusic
-import androidx.compose.material.icons.rounded.People
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,13 +42,14 @@ fun MainScreen() {
     val isPlaying   by PlayerController.isPlaying.collectAsState()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Column {
                 // Mini player bar above nav
                 AnimatedVisibility(
                     visible = currentSong != null,
-                    enter = slideInVertically { it } + fadeIn(),
-                    exit  = slideOutVertically { it } + fadeOut(),
+                    enter = slideInVertically { it } + fadeIn(tween(300)),
+                    exit  = slideOutVertically { it } + fadeOut(tween(300)),
                 ) {
                     currentSong?.let { song ->
                         MiniPlayerBar(
@@ -61,14 +61,13 @@ fun MainScreen() {
                 }
 
                 NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = Color(0xFF0A0A0A),
                     tonalElevation = 0.dp,
-                    modifier = Modifier.clip(RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp)),
                 ) {
                     navItems.forEachIndexed { index, item ->
                         NavigationBarItem(
                             selected = selectedTab == index,
-                            onClick = { selectedTab = index },
+                            onClick  = { selectedTab = index },
                             icon = {
                                 Icon(
                                     imageVector = if (selectedTab == index) item.selectedIcon else item.unselectedIcon,
@@ -78,15 +77,15 @@ fun MainScreen() {
                             },
                             label = {
                                 Text(
-                                    text = item.label,
+                                    text  = item.label,
                                     style = MaterialTheme.typography.labelSmall,
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor   = MaterialTheme.colorScheme.onBackground,
-                                selectedTextColor   = MaterialTheme.colorScheme.onBackground,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedIconColor   = MaterialTheme.colorScheme.primary,
+                                selectedTextColor   = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = Color(0xFF666666),
+                                unselectedTextColor = Color(0xFF666666),
                                 indicatorColor      = Color.Transparent,
                             ),
                         )
@@ -113,7 +112,12 @@ fun MainScreen() {
         }
     }
 
-    if (showPlayer) {
+    // Full-screen player
+    AnimatedVisibility(
+        visible = showPlayer && currentSong != null,
+        enter = slideInVertically(animationSpec = tween(400)) { it } + fadeIn(tween(300)),
+        exit  = slideOutVertically(animationSpec = tween(350)) { it } + fadeOut(tween(250)),
+    ) {
         currentSong?.let { song ->
             PlayerSheet(
                 song = song,
@@ -140,18 +144,18 @@ private fun LibraryPlaceholder() {
             Icon(
                 Icons.Rounded.LibraryMusic,
                 contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                modifier = Modifier.size(72.dp),
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
             )
             Text(
                 "Your Library",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
                 "Coming soon",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

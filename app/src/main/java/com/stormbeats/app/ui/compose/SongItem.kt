@@ -29,12 +29,9 @@ fun SongItem(
     modifier: Modifier = Modifier,
 ) {
     val bgColor by animateColorAsState(
-        targetValue = if (isPlaying)
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-        else
-            Color.Transparent,
+        targetValue = if (isPlaying) Color(0x14FF0000) else Color.Transparent,
         animationSpec = tween(300),
-        label = "bgColor",
+        label = "bg",
     )
 
     Row(
@@ -42,7 +39,7 @@ fun SongItem(
             .fillMaxWidth()
             .background(bgColor)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Album art
@@ -62,39 +59,22 @@ fun SongItem(
                 )
             } else {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    Modifier.fillMaxSize().background(Color(0xFF1A1A1A)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(
-                        Icons.Rounded.MusicNote,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp),
-                    )
+                    Icon(Icons.Rounded.MusicNote, null, tint = Color(0xFF444444), modifier = Modifier.size(24.dp))
                 }
             }
 
             // Playing overlay
             if (isPlaying) {
-                val infiniteTransition = rememberInfiniteTransition(label = "glow")
-                val alpha by infiniteTransition.animateFloat(
-                    initialValue = 0.2f, targetValue = 0.5f,
-                    animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
-                    label = "glow",
+                val alpha by rememberInfiniteTransition(label = "glow").animateFloat(
+                    0.2f, 0.5f,
+                    infiniteRepeatable(tween(700), RepeatMode.Reverse),
+                    label = "glowA",
                 )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))
-                )
-                Icon(
-                    Icons.Rounded.VolumeUp,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp),
-                )
+                Box(Modifier.fillMaxSize().background(Color(0xFFFF0000).copy(alpha = alpha)))
+                Icon(Icons.Rounded.VolumeUp, null, tint = Color.White, modifier = Modifier.size(18.dp))
             }
         }
 
@@ -103,12 +83,11 @@ fun SongItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 song.name,
-                style = MaterialTheme.typography.titleSmall,
+                style      = MaterialTheme.typography.titleSmall,
                 fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.Medium,
-                color = if (isPlaying) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                color      = if (isPlaying) Color(0xFFFF0000) else Color.White,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
             )
             Spacer(Modifier.height(2.dp))
             Row(
@@ -116,34 +95,20 @@ fun SongItem(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 if (song.explicitContent) {
-                    Surface(
-                        shape = RoundedCornerShape(3.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    ) {
-                        Text(
-                            "E",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                        )
+                    Surface(shape = RoundedCornerShape(3.dp), color = Color(0xFF1E1E1E)) {
+                        Text("E", style = MaterialTheme.typography.labelSmall, color = Color(0xFF666666), modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp))
                     }
                 }
                 Text(
                     song.getPrimaryArtist(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = Color(0xFF777777),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 song.album?.name?.takeIf { it.isNotEmpty() }?.let { albumName ->
-                    Text("·", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
-                    Text(
-                        albumName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    Text("·", style = MaterialTheme.typography.bodySmall, color = Color(0xFF3A3A3A))
+                    Text(albumName, style = MaterialTheme.typography.bodySmall, color = Color(0xFF555555), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -154,18 +119,13 @@ fun SongItem(
             Text(
                 "%d:%02d".format(dur / 60, dur % 60),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                color = Color(0xFF444444),
             )
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(4.dp))
         }
 
         IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
-            Icon(
-                Icons.Rounded.MoreVert,
-                contentDescription = "More",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                modifier = Modifier.size(18.dp),
-            )
+            Icon(Icons.Rounded.MoreVert, null, tint = Color(0xFF444444), modifier = Modifier.size(18.dp))
         }
     }
 }
