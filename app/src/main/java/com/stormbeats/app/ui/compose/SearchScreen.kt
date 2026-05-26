@@ -1,6 +1,7 @@
 package com.stormbeats.app.ui.compose
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,16 +30,17 @@ fun SearchScreen(
     onSongClick: (Song) -> Unit,
     viewModel: SearchViewModel = viewModel(),
 ) {
-    val songs by viewModel.songs.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val songs       by viewModel.songs.collectAsState()
+    val isLoading   by viewModel.isLoading.collectAsState()
     val currentSong by PlayerController.currentSong.collectAsState()
-    var query by remember { mutableStateOf("") }
+    var query       by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
-    val keyboard = LocalSoftwareKeyboardController.current
+    val keyboard       = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding(),
     ) {
         Spacer(Modifier.height(8.dp))
@@ -49,10 +51,10 @@ fun SearchScreen(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
 
-        // Search field
+        // Search bar
         OutlinedTextField(
             value = query,
             onValueChange = {
@@ -64,25 +66,36 @@ fun SearchScreen(
                 .padding(horizontal = 16.dp)
                 .focusRequester(focusRequester),
             placeholder = {
-                Text("Songs, artists, albums…", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    "Songs, artists, albums…",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
             },
             leadingIcon = {
-                Icon(Icons.Rounded.Search, contentDescription = null)
+                Icon(
+                    Icons.Rounded.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             },
             trailingIcon = {
                 AnimatedVisibility(visible = query.isNotEmpty()) {
                     IconButton(onClick = { query = ""; viewModel.search("") }) {
-                        Icon(Icons.Rounded.Close, contentDescription = "Clear")
+                        Icon(Icons.Rounded.Close, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             },
             singleLine = true,
             shape = MaterialTheme.shapes.extraLarge,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                focusedBorderColor     = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor   = MaterialTheme.colorScheme.outline,
+                focusedContainerColor  = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                cursorColor            = MaterialTheme.colorScheme.primary,
+                focusedTextColor       = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor     = MaterialTheme.colorScheme.onSurface,
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
@@ -95,13 +108,12 @@ fun SearchScreen(
             LinearProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .height(2.dp),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             )
         }
-
-        Spacer(Modifier.height(4.dp))
 
         // Results count
         AnimatedVisibility(visible = songs.isNotEmpty()) {
@@ -109,14 +121,13 @@ fun SearchScreen(
                 "${songs.size} results",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
             )
         }
 
-        // Content states
         when {
             songs.isEmpty() && query.isEmpty() -> EmptySearchHint()
-            songs.isEmpty() && !isLoading -> NoResultsHint(query)
+            songs.isEmpty() && !isLoading      -> NoResultsHint(query)
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -130,6 +141,11 @@ fun SearchScreen(
                                 PlayerController.playSong(song, songs)
                                 onSongClick(song)
                             },
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant,
                         )
                     }
                 }

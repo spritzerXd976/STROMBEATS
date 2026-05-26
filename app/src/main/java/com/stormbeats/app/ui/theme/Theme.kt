@@ -47,36 +47,44 @@ val StormBeatsShapes = Shapes(
     extraLarge = RoundedCornerShape(32.dp),
 )
 
-// Signature accent — electric green (Spotify-style)
-val AccentGreen     = Color(0xFF1DB954)
-val AccentGreenDim  = Color(0xFF14833B)
-val OnAccent        = Color(0xFF000000)
+// Signature accent — YouTube Music red
+val AccentRed        = Color(0xFFFF0000)
+val AccentRedDim     = Color(0xFFCC0000)
+val AccentRedSoft    = Color(0xFFFF4444)
+val OnAccent         = Color(0xFFFFFFFF)
 
+// Dark palette — deep black like YouTube Music
 private val DarkColorScheme = darkColorScheme(
-    primary              = AccentGreen,
+    primary              = AccentRed,
     onPrimary            = OnAccent,
-    primaryContainer     = Color(0xFF0A2E17),
-    onPrimaryContainer   = Color(0xFFB7F5C8),
-    secondary            = Color(0xFF9E9E9E),
+    primaryContainer     = Color(0xFF3A0000),
+    onPrimaryContainer   = Color(0xFFFFB3B3),
+    secondary            = Color(0xFFB0B0B0),
     onSecondary          = Color(0xFF000000),
-    secondaryContainer   = Color(0xFF1E1E1E),
+    secondaryContainer   = Color(0xFF1F1F1F),
     onSecondaryContainer = Color(0xFFE0E0E0),
-    tertiary             = Color(0xFF80CBC4),
+    tertiary             = Color(0xFFFF8A65),
     onTertiary           = Color(0xFF000000),
-    background           = Color(0xFF080808),
-    onBackground         = Color(0xFFF5F5F5),
-    surface              = Color(0xFF0E0E0E),
-    onSurface            = Color(0xFFF5F5F5),
+    tertiaryContainer    = Color(0xFF3E1A00),
+    onTertiaryContainer  = Color(0xFFFFD0B3),
+    background           = Color(0xFF0F0F0F),
+    onBackground         = Color(0xFFFFFFFF),
+    surface              = Color(0xFF0F0F0F),
+    onSurface            = Color(0xFFFFFFFF),
     surfaceVariant       = Color(0xFF1A1A1A),
-    onSurfaceVariant     = Color(0xFF9E9E9E),
-    surfaceContainer         = Color(0xFF161616),
-    surfaceContainerHigh     = Color(0xFF1C1C1C),
-    surfaceContainerHighest  = Color(0xFF242424),
-    outline              = Color(0xFF2E2E2E),
-    outlineVariant       = Color(0xFF1E1E1E),
+    onSurfaceVariant     = Color(0xFFAAAAAA),
+    surfaceContainer         = Color(0xFF181818),
+    surfaceContainerHigh     = Color(0xFF212121),
+    surfaceContainerHighest  = Color(0xFF2A2A2A),
+    outline              = Color(0xFF333333),
+    outlineVariant       = Color(0xFF282828),
     inverseSurface       = Color(0xFFF5F5F5),
-    inverseOnSurface     = Color(0xFF0E0E0E),
-    inversePrimary       = AccentGreenDim,
+    inverseOnSurface     = Color(0xFF0F0F0F),
+    inversePrimary       = AccentRedDim,
+    error                = Color(0xFFFF5252),
+    errorContainer       = Color(0xFF3B0000),
+    onError              = Color(0xFFFFFFFF),
+    onErrorContainer     = Color(0xFFFFB3B3),
 )
 
 @Composable
