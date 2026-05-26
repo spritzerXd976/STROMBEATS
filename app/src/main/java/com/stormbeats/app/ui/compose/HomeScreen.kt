@@ -34,7 +34,7 @@ private val moods = listOf(
     MoodChip("Workout", Icons.Rounded.FitnessCenter),
     MoodChip("Energize", Icons.Rounded.Bolt),
     MoodChip("Relax", Icons.Rounded.SelfImprovement),
-    MoodChip("Feel good", Icons.Rounded.MoodTwoTone),
+    MoodChip("Feel good", Icons.Rounded.SentimentSatisfied),
     MoodChip("Chill", Icons.Rounded.NightsStay),
     MoodChip("Focus", Icons.Rounded.Headphones),
 )
