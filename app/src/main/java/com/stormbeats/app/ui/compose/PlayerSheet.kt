@@ -4,7 +4,6 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -15,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,10 +51,7 @@ fun PlayerSheet(
 }
 
 @Composable
-fun PlayerContent(
-    song: Song,
-    isPlaying: Boolean,
-) {
+fun PlayerContent(song: Song, isPlaying: Boolean) {
     var positionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember { mutableLongStateOf(0L) }
     var isUserSeeking by remember { mutableStateOf(false) }
@@ -72,14 +69,16 @@ fun PlayerContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 48.dp),
+            .navigationBarsPadding()
+            .padding(horizontal = 28.dp)
+            .padding(bottom = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Large album art with rounded corners
+
+        // ── Album art ─────────────────────────────────────────────
         Box(
             modifier = Modifier
-                .size(280.dp)
+                .size(300.dp)
                 .clip(MaterialTheme.shapes.extraLarge),
             contentAlignment = Alignment.Center,
         ) {
@@ -97,58 +96,76 @@ fun PlayerContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.MusicNote,
+                        Icons.Rounded.MusicNote,
                         contentDescription = null,
-                        modifier = Modifier.size(72.dp),
+                        modifier = Modifier.size(80.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(Modifier.height(28.dp))
 
-        // Song title
-        Text(
-            text = song.name,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+        // ── Song info ─────────────────────────────────────────────
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    song.name,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    song.getPrimaryArtist(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                song.album?.name?.takeIf { it.isNotEmpty() }?.let { albumName ->
+                    Text(
+                        albumName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        maxLines = 1,
+                    )
+                }
+            }
 
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = song.getPrimaryArtist(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-
-        if (!song.album?.name.isNullOrEmpty()) {
-            Text(
-                text = song.album?.name ?: "",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            // Language badge
+            song.language?.takeIf { it.isNotEmpty() }?.let { lang ->
+                Spacer(Modifier.width(12.dp))
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                ) {
+                    Text(
+                        lang.replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    )
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(Modifier.height(24.dp))
 
-        // Seek bar
+        // ── Seekbar ───────────────────────────────────────────────
         val progress = if (durationMs > 0) positionMs.toFloat() / durationMs.toFloat() else 0f
+
         Slider(
             value = progress,
-            onValueChange = { newValue ->
+            onValueChange = { v ->
                 isUserSeeking = true
-                positionMs = (newValue * durationMs).toLong()
+                positionMs = (v * durationMs).toLong()
             },
             onValueChangeFinished = {
                 PlayerController.seekTo(positionMs)
@@ -156,51 +173,57 @@ fun PlayerContent(
             },
             modifier = Modifier.fillMaxWidth(),
             colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
+                thumbColor = MaterialTheme.colorScheme.onSurface,
+                activeTrackColor = MaterialTheme.colorScheme.onSurface,
                 inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
             ),
         )
 
-        // Time labels
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = formatTime(positionMs),
+                formatTime(positionMs),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = formatTime(durationMs),
+                formatTime(durationMs),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(Modifier.height(20.dp))
 
-        // Controls row
+        // ── Controls ──────────────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Previous
-            IconButton(
-                onClick = { PlayerController.playPrevious() },
-                modifier = Modifier.size(56.dp),
-            ) {
+            // Shuffle (decoration for now)
+            IconButton(onClick = {}, modifier = Modifier.size(48.dp)) {
                 Icon(
-                    imageVector = Icons.Rounded.SkipPrevious,
+                    Icons.Rounded.Shuffle,
+                    contentDescription = "Shuffle",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+
+            // Previous
+            IconButton(onClick = { PlayerController.playPrevious() }, modifier = Modifier.size(56.dp)) {
+                Icon(
+                    Icons.Rounded.SkipPrevious,
                     contentDescription = "Previous",
                     modifier = Modifier.size(36.dp),
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
 
-            // Play/Pause — big filled circle
+            // Play/Pause — large pill
             val isPlayingState by PlayerController.isPlaying.collectAsState()
             FilledIconButton(
                 onClick = { PlayerController.togglePlayPause() },
@@ -212,25 +235,69 @@ fun PlayerContent(
                 shape = CircleShape,
             ) {
                 Icon(
-                    imageVector = if (isPlayingState) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    contentDescription = if (isPlayingState) "Pause" else "Play",
+                    if (isPlayingState) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                    contentDescription = null,
                     modifier = Modifier.size(40.dp),
                 )
             }
 
             // Next
-            IconButton(
-                onClick = { PlayerController.playNext() },
-                modifier = Modifier.size(56.dp),
-            ) {
+            IconButton(onClick = { PlayerController.playNext() }, modifier = Modifier.size(56.dp)) {
                 Icon(
-                    imageVector = Icons.Rounded.SkipNext,
+                    Icons.Rounded.SkipNext,
                     contentDescription = "Next",
                     modifier = Modifier.size(36.dp),
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
+
+            // Repeat (decoration for now)
+            IconButton(onClick = {}, modifier = Modifier.size(48.dp)) {
+                Icon(
+                    Icons.Rounded.Repeat,
+                    contentDescription = "Repeat",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.size(22.dp),
+                )
+            }
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        // ── Song meta row ─────────────────────────────────────────
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        ) {
+            song.year?.takeIf { it.isNotEmpty() }?.let {
+                MetaChip(it)
+            }
+            if (song.explicitContent) MetaChip("Explicit", isError = true)
+            song.label?.takeIf { it.isNotEmpty() }?.let {
+                MetaChip(it)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MetaChip(text: String, isError: Boolean = false) {
+    Surface(
+        shape = CircleShape,
+        color = if (isError)
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+        else
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (isError) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

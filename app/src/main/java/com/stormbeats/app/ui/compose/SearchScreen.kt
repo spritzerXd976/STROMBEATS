@@ -15,12 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.stormbeats.app.data.model.Song
 import com.stormbeats.app.ui.search.SearchViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.collectAsState
 import com.stormbeats.app.util.PlayerController
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,15 +41,18 @@ fun SearchScreen(
             .fillMaxSize()
             .statusBarsPadding(),
     ) {
-        // Header
+        Spacer(Modifier.height(8.dp))
+
+        // Title
         Text(
             text = "Search",
             style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
         )
 
-        // Search bar styled like ArchiveTune
+        // Search field
         OutlinedTextField(
             value = query,
             onValueChange = {
@@ -61,23 +64,14 @@ fun SearchScreen(
                 .padding(horizontal = 16.dp)
                 .focusRequester(focusRequester),
             placeholder = {
-                Text(
-                    "Songs, artists...",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                Text("Songs, artists, albums…", style = MaterialTheme.typography.bodyLarge)
             },
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Rounded.Search,
-                    contentDescription = "Search",
-                )
+                Icon(Icons.Rounded.Search, contentDescription = null)
             },
             trailingIcon = {
                 AnimatedVisibility(visible = query.isNotEmpty()) {
-                    IconButton(onClick = {
-                        query = ""
-                        viewModel.search("")
-                    }) {
+                    IconButton(onClick = { query = ""; viewModel.search("") }) {
                         Icon(Icons.Rounded.Close, contentDescription = "Clear")
                     }
                 }
@@ -94,32 +88,39 @@ fun SearchScreen(
             keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
-        // Loading indicator
-        AnimatedVisibility(
-            visible = isLoading,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
+        // Loading bar
+        AnimatedVisibility(visible = isLoading) {
             LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
                 color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
         }
 
-        // Content
+        Spacer(Modifier.height(4.dp))
+
+        // Results count
+        AnimatedVisibility(visible = songs.isNotEmpty()) {
+            Text(
+                "${songs.size} results",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+            )
+        }
+
+        // Content states
         when {
-            songs.isEmpty() && query.isEmpty() -> {
-                EmptySearchHint()
-            }
-            songs.isEmpty() && !isLoading -> {
-                NoResultsHint(query = query)
-            }
+            songs.isEmpty() && query.isEmpty() -> EmptySearchHint()
+            songs.isEmpty() && !isLoading -> NoResultsHint(query)
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 160.dp),
+                    contentPadding = PaddingValues(bottom = 160.dp, top = 4.dp),
                 ) {
                     items(songs, key = { it.id }) { song ->
                         SongItem(
@@ -139,49 +140,50 @@ fun SearchScreen(
 
 @Composable
 private fun EmptySearchHint() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Rounded.Search,
-            contentDescription = null,
-            modifier = Modifier.size(72.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Search for music",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-        )
-        Text(
-            text = "Powered by JioSaavn",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-        )
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                Icons.Rounded.Search,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+            )
+            Text(
+                "Find your music",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+            )
+            Text(
+                "Powered by JioSaavn",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f),
+            )
+        }
     }
 }
 
 @Composable
 private fun NoResultsHint(query: String) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Rounded.SearchOff,
-            contentDescription = null,
-            modifier = Modifier.size(72.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "No results for \"$query\"",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-        )
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                Icons.Rounded.SearchOff,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+            )
+            Text(
+                "No results for \"$query\"",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            )
+        }
     }
 }
