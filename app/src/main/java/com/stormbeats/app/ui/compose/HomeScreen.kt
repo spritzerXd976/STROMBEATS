@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.stormbeats.app.util.PlayerController
 import com.stormbeats.app.util.UpdateManager
-import kotlinx.coroutines.launch
 
 private data class MoodChip(val label: String, val icon: ImageVector)
 
@@ -45,18 +44,15 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
     val currentSong by PlayerController.currentSong.collectAsState()
     val isPlaying   by PlayerController.isPlaying.collectAsState()
     val context     = LocalContext.current
-    val scope       = rememberCoroutineScope()
     var showUpdateDialog by remember { mutableStateOf(false) }
     var updateResult by remember { mutableStateOf<UpdateManager.UpdateResult.UpdateAvailable?>(null) }
     var selectedMood by remember { mutableIntStateOf(-1) }
 
     LaunchedEffect(Unit) {
-        scope.launch {
-            val result = UpdateManager.checkForUpdate(context)
-            if (result is UpdateManager.UpdateResult.UpdateAvailable) {
-                updateResult = result
-                showUpdateDialog = true
-            }
+        val result = UpdateManager.checkForUpdate(context)
+        if (result is UpdateManager.UpdateResult.UpdateAvailable) {
+            updateResult = result
+            showUpdateDialog = true
         }
     }
 

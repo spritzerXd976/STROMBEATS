@@ -126,8 +126,9 @@ fun SearchScreen(
         }
 
         when {
-            songs.isEmpty() && query.isEmpty() -> EmptySearchHint()
-            songs.isEmpty() && !isLoading      -> NoResultsHint(query)
+            query.isEmpty()                        -> EmptySearchHint()
+            isLoading && songs.isEmpty()           -> { /* loading indicator already shown above */ }
+            songs.isEmpty() && !isLoading          -> NoResultsHint(query)
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

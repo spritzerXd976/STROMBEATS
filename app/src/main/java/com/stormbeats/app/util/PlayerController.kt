@@ -47,6 +47,7 @@ object PlayerController {
 
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                         _currentSong.value = queue.getOrNull(currentIndex)
+                        _isPlaying.value = player?.isPlaying ?: false
                     }
 
                     override fun onPlaybackStateChanged(playbackState: Int) {
@@ -100,6 +101,8 @@ object PlayerController {
 
     /** Returns total duration in milliseconds */
     fun getDuration(): Long = player?.duration?.coerceAtLeast(0L) ?: 0L
+
+    fun getPlayer(): ExoPlayer? = player
 
     fun release() {
         player?.release()

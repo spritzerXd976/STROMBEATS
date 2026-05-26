@@ -2,12 +2,10 @@ package com.stormbeats.app.service
 
 import android.app.PendingIntent
 import android.content.Intent
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.stormbeats.app.ui.MainActivity
+import com.stormbeats.app.util.PlayerController
 
 class MusicService : MediaSessionService() {
 
@@ -16,16 +14,10 @@ class MusicService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(C.USAGE_MEDIA)
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .build()
-
-        val player = ExoPlayer.Builder(this)
-            .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
-            .setHandleAudioBecomingNoisy(true)
-            .setWakeMode(C.WAKE_MODE_NETWORK)
-            .build()
+        // Re-use the same ExoPlayer instance that PlayerController manages.
+        // This ensures UI controls and the notification are in sync.
+        PlayerController.init(applicationContext)
+        val player = PlayerController.getPlayer() ?: return
 
         val sessionActivityIntent = PendingIntent.getActivity(
             this, 0,
@@ -44,7 +36,7 @@ class MusicService : MediaSessionService() {
 
     override fun onDestroy() {
         mediaSession?.run {
-            player.release()
+            // Do NOT release the player here — PlayerController owns it.
             release()
             mediaSession = null
         }

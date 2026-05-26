@@ -13,9 +13,9 @@
     <color name="surface_container_high">#282828</color>
 
     <!-- Brand / Accent -->
-    <color name="accent">#A8D8B0</color>
-    <color name="accent_dim">#4A7A52</color>
-    <color name="on_accent">#001A07</color>
+    <color name="accent">#FF0000</color>
+    <color name="accent_dim">#CC0000</color>
+    <color name="on_accent">#FFFFFF</color>
 
     <!-- Text -->
     <color name="text_primary">#F2F2F2</color>

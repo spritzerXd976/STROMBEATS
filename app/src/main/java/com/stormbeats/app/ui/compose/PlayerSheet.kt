@@ -102,23 +102,13 @@ fun PlayerContent(song: Song, isPlaying: Boolean) {
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 ) {
                     Text(
-                        "Autumn Leaves Mix",
+                        playlist,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         maxLines = 1,
                     )
                 }
-            } ?: Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ) {
-                Text(
-                    "Autumn Leaves Mix",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                )
             }
         }
 
