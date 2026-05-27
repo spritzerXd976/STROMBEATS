@@ -1,36 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base -->
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
-    <!-- Surface hierarchy (Material 3 elevation tones) -->
-    <color name="surface">#0A0A0A</color>
-    <color name="surface2">#121212</color>
-    <color name="surface3">#1C1C1C</color>
-    <color name="surface4">#242424</color>
-    <color name="surface_container">#1E1E1E</color>
-    <color name="surface_container_high">#282828</color>
+    <!-- Brand Purple -->
+    <color name="purple_600">#7B2FBE</color>
+    <color name="purple_500">#9747FF</color>
+    <color name="purple_100">#EDE7FF</color>
+    <color name="pink_accent">#E040FB</color>
 
-    <!-- Brand / Accent -->
-    <color name="accent">#FF0000</color>
-    <color name="accent_dim">#CC0000</color>
-    <color name="on_accent">#FFFFFF</color>
+    <!-- Backgrounds -->
+    <color name="bg_light">#F2EEFF</color>
+    <color name="surface_white">#FFFFFF</color>
 
     <!-- Text -->
-    <color name="text_primary">#F2F2F2</color>
-    <color name="text_secondary">#AAAAAA</color>
-    <color name="text_hint">#555555</color>
-    <color name="text_on_surface_variant">#C4C4C4</color>
+    <color name="on_bg">#1A1A2E</color>
+    <color name="on_bg_secondary">#7A7A9A</color>
 
-    <!-- Outline / divider -->
-    <color name="outline">#2E2E2E</color>
-    <color name="outline_variant">#1E1E1E</color>
-
-    <!-- Scrim / overlay -->
-    <color name="scrim">#80000000</color>
-
-    <!-- Player gradient stops -->
-    <color name="player_gradient_top">#00000000</color>
-    <color name="player_gradient_bottom">#FF000000</color>
+    <!-- Splash -->
+    <color name="splash_bg">#9747FF</color>
 </resources>

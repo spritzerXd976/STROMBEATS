@@ -1,6 +1,5 @@
 package com.stormbeats.app.ui.compose
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,7 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -21,7 +20,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.stormbeats.app.data.model.Song
+import com.stormbeats.app.ui.theme.Purple100
+import com.stormbeats.app.ui.theme.Purple500
 import com.stormbeats.app.util.PlayerController
+import kotlinx.coroutines.delay
 
 @Composable
 fun MiniPlayerBar(
@@ -30,151 +32,76 @@ fun MiniPlayerBar(
     onExpandClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
-    val shimmerX by infiniteTransition.animateFloat(
-        initialValue = -400f, targetValue = 800f,
-        animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing)),
-        label = "shimmerX",
-    )
-
-    // Progress for seekbar in mini player
-    var positionMs by remember { mutableLongStateOf(0L) }
-    var durationMs by remember { mutableLongStateOf(1L) }
-
+    var posMs by remember { mutableLongStateOf(0L) }
+    var durMs by remember { mutableLongStateOf(1L) }
     LaunchedEffect(song) {
         while (true) {
-            positionMs = PlayerController.getCurrentPosition()
-            durationMs = PlayerController.getDuration().coerceAtLeast(1L)
-            kotlinx.coroutines.delay(500)
+            posMs = PlayerController.getCurrentPosition()
+            durMs = PlayerController.getDuration().coerceAtLeast(1L)
+            delay(500)
         }
     }
+    val progress = (posMs.toFloat() / durMs.toFloat()).coerceIn(0f, 1f)
 
-    val progress = (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
-
-    Box(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 5.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFF161616))
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .shadow(8.dp, RoundedCornerShape(20.dp))
             .clickable(onClick = onExpandClick),
+        shape  = RoundedCornerShape(20.dp),
+        color  = MaterialTheme.colorScheme.surface,
     ) {
-        // Progress bar at bottom
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(progress)
-                .height(2.dp)
-                .align(Alignment.BottomStart)
-                .background(Color(0xFFFF0000))
-        )
-
-        // Shimmer when playing
-        if (isPlaying) {
-            Box(
+        Column {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(1.dp)
-                    .align(Alignment.TopCenter)
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(Color.Transparent, Color(0x99FF0000), Color.Transparent),
-                            startX = shimmerX,
-                            endX   = shimmerX + 400f,
-                        )
-                    )
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Album art with pulse ring when playing
-            Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                if (isPlaying) {
-                    val pulse by infiniteTransition.animateFloat(
-                        1f, 1.15f,
-                        infiniteRepeatable(tween(800), RepeatMode.Reverse),
-                        label = "artPulse",
-                    )
-                    Box(
-                        Modifier
-                            .size((48 * pulse).dp)
-                            .clip(RoundedCornerShape((12 * pulse).dp))
-                            .background(Color(0x33FF0000))
-                    )
-                }
-                Box(modifier = Modifier.size(46.dp).clip(RoundedCornerShape(11.dp))) {
-                    val imageUrl = song.getImageUrl()
-                    if (imageUrl.isNotEmpty()) {
-                        AsyncImage(
-                            model = imageUrl,
-                            contentDescription = song.name,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                        )
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Album art
+                Box(Modifier.size(46.dp).clip(RoundedCornerShape(12.dp))) {
+                    val img = song.getImageUrl()
+                    if (img.isNotEmpty()) {
+                        AsyncImage(img, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                     } else {
-                        Box(
-                            Modifier.fillMaxSize().background(Color(0xFF2A0000)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(Icons.Rounded.MusicNote, null, tint = Color(0xFFFF0000))
+                        Box(Modifier.fillMaxSize().background(Purple100), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.MusicNote, null, tint = Purple500)
                         }
                     }
                 }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                IconButton(onClick = { PlayerController.playPrevious() }, Modifier.size(36.dp)) {
+                    Icon(Icons.Rounded.SkipPrevious, null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(22.dp))
+                }
+                Box(
+                    Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Purple500)
+                        .clickable { PlayerController.togglePlayPause() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                        null, tint = Color.White, modifier = Modifier.size(22.dp),
+                    )
+                }
+                IconButton(onClick = { PlayerController.playNext() }, Modifier.size(36.dp)) {
+                    Icon(Icons.Rounded.SkipNext, null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(22.dp))
+                }
             }
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    song.name,
-                    style      = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = Color.White,
-                    maxLines   = 1,
-                    overflow   = TextOverflow.Ellipsis,
-                )
-                Text(
-                    song.getPrimaryArtist(),
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = Color(0xFF888888),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            Spacer(Modifier.width(4.dp))
-
-            IconButton(
-                onClick = { PlayerController.playPrevious() },
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(22.dp))
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFFF0000))
-                    .clickable { PlayerController.togglePlayPause() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    null, tint = Color.White, modifier = Modifier.size(22.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { PlayerController.playNext() },
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(22.dp))
-            }
+            // Progress at bottom
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color      = Purple500,
+                trackColor = MaterialTheme.colorScheme.outline,
+            )
         }
     }
 }
