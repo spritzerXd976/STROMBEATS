@@ -104,8 +104,6 @@ object PlayerController {
 
     fun getPlayer(): ExoPlayer? = player
 
-    fun getQueue(): List<Song> = queue
-
     fun release() {
         player?.release()
         player = null
