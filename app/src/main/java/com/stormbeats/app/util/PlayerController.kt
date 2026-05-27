@@ -104,8 +104,12 @@ object PlayerController {
 
     fun getPlayer(): ExoPlayer? = player
 
+    fun getQueue(): List<Song> = queue.toList()
+
     fun release() {
         player?.release()
         player = null
     }
 }
+// Extension already in object — adding getQueue helper at end of file is not needed,
+// just verify the method exists

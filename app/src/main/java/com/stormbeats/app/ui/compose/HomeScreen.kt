@@ -24,39 +24,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.stormbeats.app.data.model.ArtistResult
+import com.stormbeats.app.data.model.Song
+import com.stormbeats.app.ui.home.HomeViewModel
 import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 import com.stormbeats.app.util.UpdateManager
 import kotlinx.coroutines.launch
 
-private data class MoodData(val label: String, val icon: ImageVector, val colors: List<Color>)
-
+// ── Mood chip data ────────────────────────────────────────────────────────────
+private data class MoodData(val label: String, val icon: ImageVector, val tint: Color, val bg: Color)
 private val MOODS = listOf(
-    MoodData("Workout",  Icons.Rounded.DirectionsRun, listOf(Color(0xFFFF6B6B), Color(0xFFEE5A24))),
-    MoodData("Energize", Icons.Rounded.Bolt,          listOf(Color(0xFFFECA57), Color(0xFFFF9F43))),
-    MoodData("Relax",    Icons.Rounded.Spa,           listOf(Color(0xFF48CAE4), Color(0xFF0096C7))),
-    MoodData("Vibes",    Icons.Rounded.MusicNote,     listOf(GradientStart, GradientEnd)),
-    MoodData("Chill",    Icons.Rounded.NightsStay,    listOf(Color(0xFF6C5CE7), Color(0xFFA29BFE))),
-    MoodData("Focus",    Icons.Rounded.Headphones,    listOf(Color(0xFF00B894), Color(0xFF00CEC9))),
+    MoodData("Workout",  Icons.Rounded.DirectionsRun, Color(0xFFFF6B6B), Color(0xFF2A0A0A)),
+    MoodData("Energize", Icons.Rounded.Bolt,          Color(0xFFFBBF24), Color(0xFF1A1200)),
+    MoodData("Relax",    Icons.Rounded.Spa,           Color(0xFF34D399), Color(0xFF001A10)),
+    MoodData("Vibes",    Icons.Rounded.MusicNote,     VioletSoft,        Color(0xFF150A2A)),
+    MoodData("Chill",    Icons.Rounded.NightsStay,    CyanAccent,        Color(0xFF001A20)),
+    MoodData("Focus",    Icons.Rounded.Headphones,    PinkSoft,          Color(0xFF200A14)),
 )
 
-private data class AlbumCardData(val bg: List<Color>, val accent: List<Color>, val title: String, val subtitle: String)
-
-private val ALBUM_CARDS = listOf(
-    AlbumCardData(listOf(Color(0xFF1A0A3A), Color(0xFF3D1A7A)), listOf(VioletPrimary, VioletSoft),        "Deep Focus",  "Instrumental"),
-    AlbumCardData(listOf(Color(0xFF0A1A2A), Color(0xFF0D3060)), listOf(CyanAccent, Color(0xFF0EA5E9)),    "Late Night",  "R&B Vibes"),
-    AlbumCardData(listOf(Color(0xFF2A0A1A), Color(0xFF60103A)), listOf(PinkAccent, PinkSoft),             "Bharat Hits", "Bollywood"),
-    AlbumCardData(listOf(Color(0xFF0A0A2A), Color(0xFF1A1060)), listOf(Color(0xFF6366F1), Color(0xFF818CF8)), "Old School", "90s Classics"),
-    AlbumCardData(listOf(Color(0xFF1A0A0A), Color(0xFF4A1508)), listOf(Color(0xFFFF6B6B), Color(0xFFFF8E53)), "Party Mix",  "Dance & EDM"),
-)
-
+// ─────────────────────────────────────────────────────────────────────────────
+// HomeScreen
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
-fun HomeScreen(onShowPlayer: () -> Unit) {
-    val currentSong  by PlayerController.currentSong.collectAsState()
-    val isPlaying    by PlayerController.isPlaying.collectAsState()
-    val context      = LocalContext.current
-    val scope        = rememberCoroutineScope()
+fun HomeScreen(
+    onShowPlayer: () -> Unit,
+    vm: HomeViewModel = viewModel(),
+) {
+    val trending    by vm.trending.collectAsState()
+    val newReleases by vm.newReleases.collectAsState()
+    val recentSongs by vm.recentSongs.collectAsState()
+    val artists     by vm.artists.collectAsState()
+    val isLoading   by vm.isLoading.collectAsState()
+
+    val currentSong by PlayerController.currentSong.collectAsState()
+    val isPlaying   by PlayerController.isPlaying.collectAsState()
+    val context     = LocalContext.current
+    val scope       = rememberCoroutineScope()
+
     var showUpdate   by remember { mutableStateOf(false) }
     var updateResult by remember { mutableStateOf<UpdateManager.UpdateResult.UpdateAvailable?>(null) }
     var selectedMood by remember { mutableIntStateOf(-1) }
@@ -74,11 +81,19 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
             containerColor = SurfaceCard,
             icon = { Icon(Icons.Rounded.SystemUpdate, null, tint = VioletSoft) },
             title = { Text("Update Available", color = Color.White, fontWeight = FontWeight.Bold) },
-            text  = { Text("Version ${updateResult!!.release.tagName} is ready.\n\n${updateResult!!.release.body}", color = Color(0xFF8888BB), style = MaterialTheme.typography.bodyMedium) },
+            text  = {
+                Text(
+                    "v${updateResult!!.release.tagName} is ready\n\n${updateResult!!.release.body}",
+                    color = Color(0xFF9999BB), style = MaterialTheme.typography.bodyMedium,
+                )
+            },
             confirmButton = {
                 Button(
-                    onClick = { UpdateManager.downloadAndInstall(context, updateResult!!.downloadUrl, updateResult!!.release.tagName); showUpdate = false },
-                    colors  = ButtonDefaults.buttonColors(containerColor = VioletPrimary),
+                    onClick = {
+                        UpdateManager.downloadAndInstall(context, updateResult!!.downloadUrl, updateResult!!.release.tagName)
+                        showUpdate = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = VioletPrimary),
                 ) { Text("Update Now", fontWeight = FontWeight.Bold) }
             },
             dismissButton = { TextButton(onClick = { showUpdate = false }) { Text("Later", color = Color(0xFF7777AA)) } },
@@ -92,267 +107,380 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
             .statusBarsPadding()
             .verticalScroll(rememberScrollState()),
     ) {
-        // ── Top bar ────────────────────────────────────────────────────────────
+
+        // ── Top bar ──────────────────────────────────────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 12.dp, top = 16.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Home", style = MaterialTheme.typography.headlineMedium, color = Color.White, modifier = Modifier.weight(1f))
-            IconButton(onClick = {}) { Icon(Icons.Rounded.History, null, tint = Color.White) }
-            IconButton(onClick = {}) { Icon(Icons.Rounded.TrendingUp, null, tint = Color.White) }
-            IconButton(onClick = {}) { Icon(Icons.Rounded.AccountCircle, null, tint = Color.White) }
+            // App logo + greeting
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(11.dp))
+                            .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent))),
+                        contentAlignment = Alignment.Center,
+                    ) { Icon(Icons.Rounded.Bolt, null, tint = Color.White, modifier = Modifier.size(22.dp)) }
+                    Column {
+                        Text("StormBeats", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text("What do you want to play?", style = MaterialTheme.typography.labelSmall, color = Color(0xFF6B6B8A))
+                    }
+                }
+            }
+            IconButton(onClick = {}) {
+                Icon(Icons.Rounded.Notifications, null, tint = Color(0xFF6B6B8A), modifier = Modifier.size(22.dp))
+            }
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(VioletPrimary.copy(0.3f), PinkAccent.copy(0.2f)))),
+                contentAlignment = Alignment.Center,
+            ) { Icon(Icons.Rounded.Person, null, tint = VioletSoft, modifier = Modifier.size(20.dp)) }
+            Spacer(Modifier.width(8.dp))
         }
 
-        // ── Mood chips ─────────────────────────────────────────────────────────
+        // ── Mood chips ───────────────────────────────────────────────────────
         LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.padding(bottom = 20.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(bottom = 24.dp),
         ) {
             itemsIndexed(MOODS) { idx, mood ->
-                val selected = selectedMood == idx
-                val chipBg = if (selected)
-                    Brush.linearGradient(mood.colors)
-                else
-                    Brush.linearGradient(listOf(SurfaceCard, SurfaceCard))
-
+                val sel = selectedMood == idx
                 Box(
                     modifier = Modifier
-                        .height(40.dp)
+                        .height(36.dp)
                         .clip(CircleShape)
-                        .background(chipBg)
-                        .border(
-                            width = 1.dp,
-                            color = if (selected) Color.Transparent else Color(0xFF2E2E4A),
-                            shape = CircleShape,
-                        )
-                        .clickable { selectedMood = if (selected) -1 else idx }
-                        .padding(horizontal = 16.dp),
+                        .background(if (sel) Brush.linearGradient(listOf(VioletPrimary, PinkAccent)) else Brush.linearGradient(listOf(SurfaceCard, SurfaceCard)))
+                        .border(1.dp, if (sel) Color.Transparent else Color(0xFF2A2A40), CircleShape)
+                        .clickable { selectedMood = if (sel) -1 else idx }
+                        .padding(horizontal = 14.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Icon(mood.icon, null, modifier = Modifier.size(16.dp), tint = if (selected) Color.White else Color(0xFF7777AA))
-                        Text(
-                            mood.label,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (selected) Color.White else Color(0xFF9999BB),
-                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Icon(mood.icon, null, modifier = Modifier.size(13.dp), tint = if (sel) Color.White else mood.tint)
+                        Text(mood.label, style = MaterialTheme.typography.labelMedium, fontSize = 12.sp, color = if (sel) Color.White else Color(0xFF9999BB))
                     }
                 }
             }
         }
 
-        // ── Now playing hero card (when song is playing) ───────────────────────
+        // ── Now Playing card ─────────────────────────────────────────────────
         AnimatedVisibility(
             visible = currentSong != null,
-            enter = fadeIn(tween(400)) + expandVertically(tween(400)),
-            exit  = fadeOut(tween(250)) + shrinkVertically(tween(250)),
+            enter = fadeIn(tween(350)) + expandVertically(tween(350)),
+            exit  = fadeOut(tween(200)) + shrinkVertically(tween(200)),
         ) {
             currentSong?.let { song ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(SurfaceCard)
-                        .border(
-                            1.dp,
-                            Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f))),
-                            RoundedCornerShape(20.dp),
-                        )
-                        .clickable(onClick = onShowPlayer),
+                NowPlayingCard(song = song, isPlaying = isPlaying, onTap = onShowPlayer)
+                Spacer(Modifier.height(24.dp))
+            }
+        }
+
+        if (currentSong == null) Spacer(Modifier.height(4.dp))
+
+        // ── Trending section ─────────────────────────────────────────────────
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = VioletPrimary, modifier = Modifier.size(36.dp), strokeWidth = 3.dp)
+            }
+        } else {
+            if (trending.isNotEmpty()) {
+                SectionHeader("Trending Now 🔥", "See all") {}
+                Spacer(Modifier.height(12.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier.size(60.dp).clip(RoundedCornerShape(12.dp)).background(SurfaceElevated),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            val url = song.getImageUrl()
-                            if (url.isNotEmpty()) {
-                                AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                            } else {
-                                Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(28.dp))
-                            }
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            val infiniteTransition = rememberInfiniteTransition(label = "dot")
-                            val dotPulse by infiniteTransition.animateFloat(
-                                0.4f, 1f, infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "dot"
-                            )
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Box(
-                                    Modifier.size(7.dp).clip(CircleShape)
-                                        .background(Brush.radialGradient(listOf(VioletPrimary.copy(dotPulse), PinkAccent.copy(dotPulse * 0.7f))))
-                                )
-                                Text("Now Playing", style = MaterialTheme.typography.labelSmall, color = VioletSoft, fontWeight = FontWeight.SemiBold)
-                            }
-                            Spacer(Modifier.height(4.dp))
-                            Text(song.name, style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1)
-                        }
-                        Box(
-                            modifier = Modifier.size(44.dp).clip(CircleShape)
-                                .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
-                                .clickable { PlayerController.togglePlayPause() },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp))
-                        }
+                    itemsIndexed(trending, key = { _, s -> "t${s.id}" }) { _, song ->
+                        SongCard(song = song, isPlaying = currentSong?.id == song.id, onClick = {
+                            PlayerController.playSong(song, trending)
+                            vm.addToRecent(song)
+                            onShowPlayer()
+                        })
                     }
+                }
+                Spacer(Modifier.height(28.dp))
+            }
+
+            // ── Popular Artists (from API) ────────────────────────────────────
+            if (artists.isNotEmpty()) {
+                SectionHeader("Popular Artists", "See all") {}
+                Spacer(Modifier.height(12.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    itemsIndexed(artists, key = { _, a -> "a${a.id}" }) { _, artist ->
+                        ArtistCard(artist = artist)
+                    }
+                }
+                Spacer(Modifier.height(28.dp))
+            }
+
+            // ── New Releases (album images from API) ─────────────────────────
+            if (newReleases.isNotEmpty()) {
+                SectionHeader("New Releases", "See all") {}
+                Spacer(Modifier.height(12.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    itemsIndexed(newReleases, key = { _, s -> "n${s.id}" }) { _, song ->
+                        AlbumCard(song = song, isPlaying = currentSong?.id == song.id, onClick = {
+                            PlayerController.playSong(song, newReleases)
+                            vm.addToRecent(song)
+                            onShowPlayer()
+                        })
+                    }
+                }
+                Spacer(Modifier.height(28.dp))
+            }
+
+            // ── Recently Played (real songs) ─────────────────────────────────
+            if (recentSongs.isNotEmpty()) {
+                SectionHeader("Recently Played", "See all") {}
+                Spacer(Modifier.height(12.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    itemsIndexed(recentSongs, key = { _, s -> "r${s.id}" }) { _, song ->
+                        RecentCard(song = song, isPlaying = currentSong?.id == song.id, onClick = {
+                            PlayerController.playSong(song, recentSongs)
+                            vm.addToRecent(song)
+                            onShowPlayer()
+                        })
+                    }
+                }
+                Spacer(Modifier.height(28.dp))
+            }
+        }
+
+        Spacer(Modifier.height(110.dp))
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Now Playing Card
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun NowPlayingCard(song: Song, isPlaying: Boolean, onTap: () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition(label = "np")
+    val dotAlpha by infiniteTransition.animateFloat(
+        0.3f, 1f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "dot",
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(SurfaceCard)
+            .border(1.dp, Brush.linearGradient(listOf(VioletPrimary.copy(0.55f), PinkAccent.copy(0.4f))), RoundedCornerShape(20.dp))
+            .clickable(onClick = onTap),
+    ) {
+        // Subtle gradient top strip
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(Brush.horizontalGradient(listOf(Color.Transparent, VioletPrimary, PinkAccent, Color.Transparent)))
+        )
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Album art
+            Box(
+                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)).background(SurfaceElevated),
+                contentAlignment = Alignment.Center,
+            ) {
+                val url = song.getImageUrl()
+                if (url.isNotEmpty()) {
+                    AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                } else {
+                    Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(28.dp))
+                }
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(Modifier.size(7.dp).clip(CircleShape).background(Brush.radialGradient(listOf(VioletPrimary.copy(dotAlpha), PinkAccent.copy(dotAlpha * 0.6f)))))
+                    Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = VioletSoft, letterSpacing = 1.sp, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+                }
+                Spacer(Modifier.height(3.dp))
+                Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF8888AA), maxLines = 1)
+            }
+            Spacer(Modifier.width(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier.size(34.dp).clip(CircleShape).background(SurfaceElevated).clickable { PlayerController.playPrevious() },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(18.dp)) }
+                Box(
+                    modifier = Modifier.size(46.dp).clip(CircleShape).background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent))).clickable { PlayerController.togglePlayPause() },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp)) }
+                Box(
+                    modifier = Modifier.size(34.dp).clip(CircleShape).background(SurfaceElevated).clickable { PlayerController.playNext() },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(18.dp)) }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Song card (trending) — portrait with play overlay
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun SongCard(song: Song, isPlaying: Boolean, onClick: () -> Unit) {
+    val pulseAlpha by rememberInfiniteTransition(label = "sp").animateFloat(
+        0.5f, 1f, infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "sp",
+    )
+
+    Column(modifier = Modifier.width(140.dp).clickable(onClick = onClick)) {
+        Box(modifier = Modifier.size(140.dp).clip(RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
+            val url = song.getImageUrl()
+            if (url.isNotEmpty()) {
+                AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            } else {
+                Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(SurfaceElevated, SurfaceCard))), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(40.dp))
+                }
+            }
+            // Dark scrim
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(0.6f)))))
+            // Play button
+            Box(
+                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp).size(32.dp).clip(CircleShape)
+                    .background(if (isPlaying) Brush.linearGradient(listOf(VioletPrimary.copy(pulseAlpha), PinkAccent.copy(pulseAlpha))) else Brush.linearGradient(listOf(Color.Black.copy(0.7f), Color.Black.copy(0.7f)))),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(18.dp))
+            }
+            if (isPlaying) {
+                Box(Modifier.align(Alignment.TopStart).padding(6.dp).clip(RoundedCornerShape(6.dp)).background(VioletPrimary.copy(0.9f)).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                    Text("PLAYING", style = MaterialTheme.typography.labelSmall, color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
                 }
             }
         }
-
-        Spacer(Modifier.height(24.dp))
-
-        // ── Quick picks ────────────────────────────────────────────────────────
-        SectionHeader("Quick picks", action = "Play all")
-
         Spacer(Modifier.height(8.dp))
+        Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
 
-        data class QuickItem(val icon: ImageVector, val bg: List<Color>, val title: String, val subtitle: String)
-        listOf(
-            QuickItem(Icons.Rounded.Search,     listOf(Color(0xFF1A1A3A), SurfaceElevated), "Discover music",    "Search JioSaavn"),
-            QuickItem(Icons.Rounded.AudioFile,  listOf(Color(0xFF0D2010), Color(0xFF0A3018)), "320kbps HiFi Audio", "Lossless quality"),
-            QuickItem(Icons.Rounded.Bolt,       listOf(Color(0xFF2A1A00), Color(0xFF4A2E00)), "StormBeats",       "Your music player"),
-            QuickItem(Icons.Rounded.QueueMusic, listOf(Color(0xFF1A0A2A), Color(0xFF2D1566)), "Queue songs",      "Tap a song to play"),
-        ).forEach { item ->
-            QuickPickRow(icon = item.icon, gradient = item.bg, title = item.title, subtitle = item.subtitle)
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        // ── Keep listening / Album cards ───────────────────────────────────────
-        SectionHeader("Featured", action = null)
-
-        Spacer(Modifier.height(12.dp))
-
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier.padding(bottom = 8.dp),
-        ) {
-            itemsIndexed(ALBUM_CARDS) { _, card ->
-                AlbumCard(bgGradient = card.bg, accentGradient = card.accent, title = card.title, subtitle = card.subtitle)
+// ─────────────────────────────────────────────────────────────────────────────
+// Album card — square, real API image
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun AlbumCard(song: Song, isPlaying: Boolean, onClick: () -> Unit) {
+    Column(modifier = Modifier.width(130.dp).clickable(onClick = onClick)) {
+        Box(modifier = Modifier.size(130.dp).clip(RoundedCornerShape(14.dp)).background(SurfaceElevated)) {
+            val url = song.getImageUrl()
+            if (url.isNotEmpty()) {
+                AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            } else {
+                Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF1A0A3A), Color(0xFF2D1566)))), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.Album, null, tint = VioletSoft.copy(0.4f), modifier = Modifier.size(44.dp))
+                }
+            }
+            if (isPlaying) {
+                Box(Modifier.fillMaxSize().background(VioletPrimary.copy(0.25f)))
+                Icon(Icons.Rounded.VolumeUp, null, tint = Color.White, modifier = Modifier.size(22.dp).align(Alignment.Center))
             }
         }
-
-        Spacer(Modifier.height(24.dp))
-
-        // ── Artists row ────────────────────────────────────────────────────────
-        SectionHeader("Popular Artists", action = null)
-
-        Spacer(Modifier.height(12.dp))
-
-        val artists = listOf(
-            "Arijit Singh"    to listOf(Color(0xFF6C5CE7), Color(0xFFA29BFE)),
-            "Pritam"          to listOf(Color(0xFFFF7675), Color(0xFFD63031)),
-            "AR Rahman"       to listOf(Color(0xFF00B894), Color(0xFF00CEC9)),
-            "Neha Kakkar"     to listOf(Color(0xFFEC4899), Color(0xFFF472B6)),
-            "Atif Aslam"      to listOf(Color(0xFF0EA5E9), Color(0xFF38BDF8)),
-            "Shreya Ghoshal"  to listOf(Color(0xFFF59E0B), Color(0xFFFBBF24)),
-        )
-
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier.padding(bottom = 8.dp),
-        ) {
-            itemsIndexed(artists) { _, (name, colors) ->
-                ArtistChip(name = name, gradient = colors)
-            }
-        }
-
-        Spacer(Modifier.height(100.dp))
+        Spacer(Modifier.height(7.dp))
+        Text(song.album?.name ?: song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1)
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Artist card — circle, real API image
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun SectionHeader(title: String, action: String?) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, color = VioletSoft, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        if (action != null) {
-            TextButton(onClick = {}) {
-                Text(action, color = Color(0xFF9999BB), style = MaterialTheme.typography.labelLarge)
-            }
-        }
-    }
-}
-
-@Composable
-private fun QuickPickRow(icon: ImageVector, gradient: List<Color>, title: String, subtitle: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {}
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Box(
-            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(10.dp))
-                .background(Brush.linearGradient(gradient)),
-            contentAlignment = Alignment.Center,
-        ) { Icon(icon, null, tint = Color.White.copy(0.85f), modifier = Modifier.size(26.dp)) }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title,    style = MaterialTheme.typography.titleSmall, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall,  color = Color(0xFF5555AA), maxLines = 1)
-        }
-        Icon(Icons.Rounded.MoreVert, null, tint = Color(0xFF3E3E5E), modifier = Modifier.size(18.dp))
-    }
-}
-
-@Composable
-private fun AlbumCard(bgGradient: List<Color>, accentGradient: List<Color>, title: String, subtitle: String) {
-    Box(
-        modifier = Modifier
-            .size(150.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Brush.linearGradient(bgGradient))
-            .border(1.dp, Brush.linearGradient(accentGradient.map { it.copy(0.25f) }), RoundedCornerShape(16.dp))
-            .clickable {},
-    ) {
-        Box(
-            modifier = Modifier.size(70.dp).align(Alignment.TopEnd)
-                .clip(CircleShape)
-                .background(Brush.radialGradient(accentGradient.map { it.copy(0.3f) }))
-        )
-        Column(
-            modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
-        ) {
-            Text(title,    style = MaterialTheme.typography.titleSmall, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1)
-            Text(subtitle, style = MaterialTheme.typography.labelSmall, color = Color(0xFF8888AA), maxLines = 1)
-        }
-        Box(
-            modifier = Modifier.size(34.dp).align(Alignment.BottomEnd).padding(end = 10.dp, bottom = 10.dp)
-                .clip(CircleShape)
-                .background(Brush.linearGradient(accentGradient.map { it.copy(0.7f) })),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(18.dp)) }
-    }
-}
-
-@Composable
-private fun ArtistChip(name: String, gradient: List<Color>) {
+private fun ArtistCard(artist: ArtistResult) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(80.dp).clickable {},
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.size(72.dp).clip(CircleShape)
-                .background(Brush.linearGradient(gradient.map { it.copy(0.25f) }))
-                .border(2.dp, Brush.linearGradient(gradient.map { it.copy(0.5f) }), CircleShape),
+            modifier = Modifier.size(76.dp).clip(CircleShape).background(SurfaceElevated)
+                .border(2.dp, Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f))), CircleShape),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.Person, null, tint = Color.White.copy(0.7f), modifier = Modifier.size(32.dp)) }
-        Spacer(Modifier.height(6.dp))
-        Text(name, style = MaterialTheme.typography.labelSmall, fontSize = 10.sp, color = Color(0xFF9999BB), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        ) {
+            val url = artist.getImageUrl()
+            if (url.isNotEmpty()) {
+                AsyncImage(url, artist.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            } else {
+                Icon(Icons.Rounded.Person, null, tint = Color(0xFF5A5A7A), modifier = Modifier.size(32.dp))
+            }
+        }
+        Spacer(Modifier.height(7.dp))
+        Text(
+            artist.name,
+            style = MaterialTheme.typography.labelSmall,
+            fontSize = 11.sp,
+            color = Color(0xFFCCCCDD),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Recent card — landscape thumbnail
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun RecentCard(song: Song, isPlaying: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .width(240.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(SurfaceCard)
+            .border(1.dp, if (isPlaying) Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f))) else Brush.linearGradient(listOf(Color(0xFF2A2A40), Color(0xFF2A2A40))), RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).background(SurfaceElevated)) {
+            val url = song.getImageUrl()
+            if (url.isNotEmpty()) AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            else Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(24.dp).align(Alignment.Center))
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = if (isPlaying) VioletSoft else Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1)
+        }
+        Box(
+            modifier = Modifier.size(32.dp).clip(CircleShape).background(if (isPlaying) Brush.linearGradient(listOf(VioletPrimary, PinkAccent)) else Brush.linearGradient(listOf(SurfaceElevated, SurfaceElevated))),
+            contentAlignment = Alignment.Center,
+        ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(17.dp)) }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section header
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun SectionHeader(title: String, action: String, onAction: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.weight(1f))
+        TextButton(onClick = onAction) {
+            Text(action, style = MaterialTheme.typography.labelMedium, color = VioletSoft)
+        }
     }
 }
