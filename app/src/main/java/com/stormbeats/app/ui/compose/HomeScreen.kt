@@ -34,19 +34,17 @@ import com.stormbeats.app.util.PlayerController
 import com.stormbeats.app.util.UpdateManager
 import kotlinx.coroutines.launch
 
-// ── Mood chip data ────────────────────────────────────────────────────────────
-private data class MoodData(val label: String, val icon: ImageVector, val tint: Color, val bg: Color)
+// ── Mood chips ────────────────────────────────────────────────────────────────
+private data class Mood(val label: String, val icon: ImageVector)
 private val MOODS = listOf(
-    MoodData("Workout",  Icons.Rounded.DirectionsRun, Color(0xFFFF6B6B), Color(0xFF2A0A0A)),
-    MoodData("Energize", Icons.Rounded.Bolt,          Color(0xFFFBBF24), Color(0xFF1A1200)),
-    MoodData("Relax",    Icons.Rounded.Spa,           Color(0xFF34D399), Color(0xFF001A10)),
-    MoodData("Vibes",    Icons.Rounded.MusicNote,     VioletSoft,        Color(0xFF150A2A)),
-    MoodData("Chill",    Icons.Rounded.NightsStay,    CyanAccent,        Color(0xFF001A20)),
-    MoodData("Focus",    Icons.Rounded.Headphones,    PinkSoft,          Color(0xFF200A14)),
+    Mood("Workout",  Icons.Rounded.DirectionsRun),
+    Mood("Energize", Icons.Rounded.Bolt),
+    Mood("Relax",    Icons.Rounded.Spa),
+    Mood("Vibes",    Icons.Rounded.MusicNote),
+    Mood("Chill",    Icons.Rounded.NightsStay),
+    Mood("Focus",    Icons.Rounded.Headphones),
 )
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HomeScreen
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun HomeScreen(
@@ -55,10 +53,10 @@ fun HomeScreen(
 ) {
     val trending    by vm.trending.collectAsState()
     val newReleases by vm.newReleases.collectAsState()
+    val topCharts   by vm.topCharts.collectAsState()
     val recentSongs by vm.recentSongs.collectAsState()
     val artists     by vm.artists.collectAsState()
     val isLoading   by vm.isLoading.collectAsState()
-
     val currentSong by PlayerController.currentSong.collectAsState()
     val isPlaying   by PlayerController.isPlaying.collectAsState()
     val context     = LocalContext.current
@@ -75,412 +73,429 @@ fun HomeScreen(
         }
     }
 
+    // Update dialog
     if (showUpdate && updateResult != null) {
         AlertDialog(
             onDismissRequest = { showUpdate = false },
-            containerColor = SurfaceCard,
-            icon = { Icon(Icons.Rounded.SystemUpdate, null, tint = VioletSoft) },
-            title = { Text("Update Available", color = Color.White, fontWeight = FontWeight.Bold) },
-            text  = {
-                Text(
-                    "v${updateResult!!.release.tagName} is ready\n\n${updateResult!!.release.body}",
-                    color = Color(0xFF9999BB), style = MaterialTheme.typography.bodyMedium,
-                )
-            },
+            containerColor   = Surface1,
+            icon    = { Icon(Icons.Rounded.SystemUpdate, null, tint = PurpleLight) },
+            title   = { Text("Update Available", color = OnBg, fontWeight = FontWeight.Bold) },
+            text    = { Text("v${updateResult!!.release.tagName} is ready\n\n${updateResult!!.release.body}", color = OnBgSec, style = MaterialTheme.typography.bodyMedium) },
             confirmButton = {
-                Button(
-                    onClick = {
-                        UpdateManager.downloadAndInstall(context, updateResult!!.downloadUrl, updateResult!!.release.tagName)
-                        showUpdate = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = VioletPrimary),
-                ) { Text("Update Now", fontWeight = FontWeight.Bold) }
+                Button(onClick = {
+                    UpdateManager.downloadAndInstall(context, updateResult!!.downloadUrl, updateResult!!.release.tagName)
+                    showUpdate = false
+                }, colors = ButtonDefaults.buttonColors(containerColor = Purple)) { Text("Update Now") }
             },
-            dismissButton = { TextButton(onClick = { showUpdate = false }) { Text("Later", color = Color(0xFF7777AA)) } },
+            dismissButton = { TextButton(onClick = { showUpdate = false }) { Text("Later", color = OnBgSec) } },
         )
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(SurfaceDark)
+            .background(Bg)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState()),
     ) {
-
-        // ── Top bar ──────────────────────────────────────────────────────────
+        // ── Top Bar ───────────────────────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 12.dp, top = 16.dp, bottom = 8.dp),
+                .padding(start = 20.dp, end = 16.dp, top = 18.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // App logo + greeting
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(11.dp))
-                            .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent))),
-                        contentAlignment = Alignment.Center,
-                    ) { Icon(Icons.Rounded.Bolt, null, tint = Color.White, modifier = Modifier.size(22.dp)) }
-                    Column {
-                        Text("StormBeats", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                        Text("What do you want to play?", style = MaterialTheme.typography.labelSmall, color = Color(0xFF6B6B8A))
-                    }
-                }
-            }
-            IconButton(onClick = {}) {
-                Icon(Icons.Rounded.Notifications, null, tint = Color(0xFF6B6B8A), modifier = Modifier.size(22.dp))
-            }
+            // Logo
             Box(
                 modifier = Modifier
-                    .size(38.dp)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(VioletPrimary.copy(0.3f), PinkAccent.copy(0.2f)))),
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Brush.linearGradient(listOf(Purple, Pink))),
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Rounded.Person, null, tint = VioletSoft, modifier = Modifier.size(20.dp)) }
-            Spacer(Modifier.width(8.dp))
+            ) { Icon(Icons.Rounded.Bolt, null, tint = Color.White, modifier = Modifier.size(24.dp)) }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("StormBeats", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = OnBg)
+                Text("What's your vibe today?", style = MaterialTheme.typography.labelSmall, color = OnBgTer)
+            }
+            IconButton(onClick = {}) {
+                Icon(Icons.Rounded.Notifications, null, tint = OnBgSec, modifier = Modifier.size(22.dp))
+            }
+            Box(
+                modifier = Modifier.size(36.dp).clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(Purple.copy(.3f), Pink.copy(.2f)))),
+                contentAlignment = Alignment.Center,
+            ) { Icon(Icons.Rounded.Person, null, tint = PurpleLight, modifier = Modifier.size(18.dp)) }
         }
 
-        // ── Mood chips ───────────────────────────────────────────────────────
+        Spacer(Modifier.height(14.dp))
+
+        // ── Mood chips ────────────────────────────────────────────────────────
         LazyRow(
             contentPadding = PaddingValues(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(bottom = 24.dp),
         ) {
-            itemsIndexed(MOODS) { idx, mood ->
-                val sel = selectedMood == idx
+            itemsIndexed(MOODS) { i, mood ->
+                val sel = selectedMood == i
                 Box(
                     modifier = Modifier
-                        .height(36.dp)
+                        .height(34.dp)
                         .clip(CircleShape)
-                        .background(if (sel) Brush.linearGradient(listOf(VioletPrimary, PinkAccent)) else Brush.linearGradient(listOf(SurfaceCard, SurfaceCard)))
-                        .border(1.dp, if (sel) Color.Transparent else Color(0xFF2A2A40), CircleShape)
-                        .clickable { selectedMood = if (sel) -1 else idx }
+                        .background(if (sel) Brush.linearGradient(listOf(Purple, Pink)) else Brush.linearGradient(listOf(Surface1, Surface1)))
+                        .border(1.dp, if (sel) Color.Transparent else Surface3, CircleShape)
+                        .clickable { selectedMood = if (sel) -1 else i }
                         .padding(horizontal = 14.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Icon(mood.icon, null, modifier = Modifier.size(13.dp), tint = if (sel) Color.White else mood.tint)
-                        Text(mood.label, style = MaterialTheme.typography.labelMedium, fontSize = 12.sp, color = if (sel) Color.White else Color(0xFF9999BB))
+                        Icon(mood.icon, null, modifier = Modifier.size(12.dp), tint = if (sel) Color.White else OnBgSec)
+                        Text(mood.label, style = MaterialTheme.typography.labelMedium, fontSize = 12.sp, color = if (sel) Color.White else OnBgSec)
                     }
                 }
             }
         }
 
-        // ── Now Playing card ─────────────────────────────────────────────────
+        Spacer(Modifier.height(20.dp))
+
+        // ── Now Playing card ──────────────────────────────────────────────────
         AnimatedVisibility(
             visible = currentSong != null,
-            enter = fadeIn(tween(350)) + expandVertically(tween(350)),
+            enter = fadeIn(tween(300)) + expandVertically(tween(300)),
             exit  = fadeOut(tween(200)) + shrinkVertically(tween(200)),
         ) {
             currentSong?.let { song ->
-                NowPlayingCard(song = song, isPlaying = isPlaying, onTap = onShowPlayer)
+                NowPlayingCard(song, isPlaying, onShowPlayer)
                 Spacer(Modifier.height(24.dp))
             }
         }
 
-        if (currentSong == null) Spacer(Modifier.height(4.dp))
-
-        // ── Trending section ─────────────────────────────────────────────────
+        // ── Loading shimmer ───────────────────────────────────────────────────
         if (isLoading) {
-            Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = VioletPrimary, modifier = Modifier.size(36.dp), strokeWidth = 3.dp)
+            Box(Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    CircularProgressIndicator(color = Purple, modifier = Modifier.size(36.dp), strokeWidth = 3.dp)
+                    Text("Loading music…", style = MaterialTheme.typography.bodySmall, color = OnBgTer)
+                }
             }
         } else {
+
+            // ── Trending Now ──────────────────────────────────────────────────
             if (trending.isNotEmpty()) {
-                SectionHeader("Trending Now 🔥", "See all") {}
+                SectionHeader("Trending Now 🔥", "See all")
                 Spacer(Modifier.height(12.dp))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    itemsIndexed(trending, key = { _, s -> "t${s.id}" }) { _, song ->
-                        SongCard(song = song, isPlaying = currentSong?.id == song.id, onClick = {
-                            PlayerController.playSong(song, trending)
-                            vm.addToRecent(song)
-                            onShowPlayer()
-                        })
+                    itemsIndexed(trending, key = { _, s -> "tr${s.id}" }) { _, song ->
+                        SongCard(
+                            song = song,
+                            isCurrentPlaying = currentSong?.id == song.id && isPlaying,
+                            onClick = { PlayerController.playSong(song, trending); vm.addToRecent(song); onShowPlayer() },
+                        )
                     }
                 }
                 Spacer(Modifier.height(28.dp))
             }
 
-            // ── Popular Artists (from API) ────────────────────────────────────
+            // ── Popular Artists (real API images) ─────────────────────────────
             if (artists.isNotEmpty()) {
-                SectionHeader("Popular Artists", "See all") {}
+                SectionHeader("Popular Artists", "See all")
                 Spacer(Modifier.height(12.dp))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    itemsIndexed(artists, key = { _, a -> "a${a.id}" }) { _, artist ->
-                        ArtistCard(artist = artist)
+                    itemsIndexed(artists, key = { _, a -> "ar${a.id}" }) { _, artist ->
+                        ArtistCard(artist)
                     }
                 }
                 Spacer(Modifier.height(28.dp))
             }
 
-            // ── New Releases (album images from API) ─────────────────────────
+            // ── New Releases (real album art) ─────────────────────────────────
             if (newReleases.isNotEmpty()) {
-                SectionHeader("New Releases", "See all") {}
+                SectionHeader("New Releases", "See all")
                 Spacer(Modifier.height(12.dp))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    itemsIndexed(newReleases, key = { _, s -> "n${s.id}" }) { _, song ->
-                        AlbumCard(song = song, isPlaying = currentSong?.id == song.id, onClick = {
-                            PlayerController.playSong(song, newReleases)
-                            vm.addToRecent(song)
-                            onShowPlayer()
-                        })
+                    itemsIndexed(newReleases, key = { _, s -> "nr${s.id}" }) { _, song ->
+                        AlbumCard(
+                            song = song,
+                            isPlaying = currentSong?.id == song.id,
+                            onClick = { PlayerController.playSong(song, newReleases); vm.addToRecent(song); onShowPlayer() },
+                        )
                     }
                 }
                 Spacer(Modifier.height(28.dp))
             }
 
-            // ── Recently Played (real songs) ─────────────────────────────────
+            // ── Top Charts ────────────────────────────────────────────────────
+            if (topCharts.isNotEmpty()) {
+                SectionHeader("Top Charts 🎵", "See all")
+                Spacer(Modifier.height(12.dp))
+                topCharts.take(5).forEachIndexed { index, song ->
+                    ChartRow(
+                        rank   = index + 1,
+                        song   = song,
+                        isPlaying = currentSong?.id == song.id,
+                        onClick = { PlayerController.playSong(song, topCharts); vm.addToRecent(song); onShowPlayer() },
+                    )
+                }
+                Spacer(Modifier.height(28.dp))
+            }
+
+            // ── Recently Played ───────────────────────────────────────────────
             if (recentSongs.isNotEmpty()) {
-                SectionHeader("Recently Played", "See all") {}
+                SectionHeader("Recently Played", "See all")
                 Spacer(Modifier.height(12.dp))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    itemsIndexed(recentSongs, key = { _, s -> "r${s.id}" }) { _, song ->
-                        RecentCard(song = song, isPlaying = currentSong?.id == song.id, onClick = {
-                            PlayerController.playSong(song, recentSongs)
-                            vm.addToRecent(song)
-                            onShowPlayer()
-                        })
+                    itemsIndexed(recentSongs, key = { _, s -> "rc${s.id}" }) { _, song ->
+                        RecentCard(
+                            song = song,
+                            isPlaying = currentSong?.id == song.id,
+                            onClick = { PlayerController.playSong(song, recentSongs); vm.addToRecent(song); onShowPlayer() },
+                        )
                     }
                 }
                 Spacer(Modifier.height(28.dp))
             }
         }
 
-        Spacer(Modifier.height(110.dp))
+        Spacer(Modifier.height(120.dp))
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Now Playing Card
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Section header ────────────────────────────────────────────────────────────
+@Composable
+private fun SectionHeader(title: String, action: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = OnBg, modifier = Modifier.weight(1f))
+        Text(action, style = MaterialTheme.typography.labelMedium, color = PurpleLight, modifier = Modifier.clickable {})
+    }
+}
+
+// ── Now Playing card ──────────────────────────────────────────────────────────
 @Composable
 private fun NowPlayingCard(song: Song, isPlaying: Boolean, onTap: () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "np")
-    val dotAlpha by infiniteTransition.animateFloat(
-        0.3f, 1f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "dot",
-    )
+    val inf = rememberInfiniteTransition(label = "np")
+    val dot by inf.animateFloat(0.3f, 1f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "d")
 
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(SurfaceCard)
-            .border(1.dp, Brush.linearGradient(listOf(VioletPrimary.copy(0.55f), PinkAccent.copy(0.4f))), RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(18.dp))
             .clickable(onClick = onTap),
+        shape    = RoundedCornerShape(18.dp),
+        color    = Surface0,
+        border   = BorderStroke(1.dp, Brush.linearGradient(listOf(Purple.copy(.5f), Pink.copy(.3f)))),
+        shadowElevation = 8.dp,
     ) {
-        // Subtle gradient top strip
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(2.dp)
-                .background(Brush.horizontalGradient(listOf(Color.Transparent, VioletPrimary, PinkAccent, Color.Transparent)))
-        )
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             // Album art
             Box(
-                modifier = Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)).background(SurfaceElevated),
+                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(12.dp)).background(Surface2),
                 contentAlignment = Alignment.Center,
             ) {
                 val url = song.getImageUrl()
-                if (url.isNotEmpty()) {
-                    AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                } else {
-                    Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(28.dp))
-                }
+                if (url.isNotEmpty()) AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                else Icon(Icons.Rounded.MusicNote, null, tint = PurpleLight, modifier = Modifier.size(26.dp))
             }
             Spacer(Modifier.width(14.dp))
+
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(Modifier.size(7.dp).clip(CircleShape).background(Brush.radialGradient(listOf(VioletPrimary.copy(dotAlpha), PinkAccent.copy(dotAlpha * 0.6f)))))
-                    Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = VioletSoft, letterSpacing = 1.sp, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+                // Pulsing "Now Playing" label
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Box(Modifier.size(6.dp).clip(CircleShape).background(Brush.radialGradient(listOf(Purple.copy(dot), Pink.copy(dot * .7f)))))
+                    Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = PurpleLight, letterSpacing = 1.sp, fontSize = 9.sp)
                 }
-                Spacer(Modifier.height(3.dp))
-                Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF8888AA), maxLines = 1)
+                Spacer(Modifier.height(2.dp))
+                Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = OnBg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = OnBgSec, maxLines = 1)
             }
+
             Spacer(Modifier.width(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+            // Controls
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                SmallCtrlBtn(Icons.Rounded.SkipPrevious, Surface2) { PlayerController.playPrevious() }
                 Box(
-                    modifier = Modifier.size(34.dp).clip(CircleShape).background(SurfaceElevated).clickable { PlayerController.playPrevious() },
-                    contentAlignment = Alignment.Center,
-                ) { Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(18.dp)) }
-                Box(
-                    modifier = Modifier.size(46.dp).clip(CircleShape).background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent))).clickable { PlayerController.togglePlayPause() },
+                    modifier = Modifier.size(44.dp).clip(CircleShape)
+                        .background(Brush.linearGradient(listOf(Purple, Pink)))
+                        .clickable { PlayerController.togglePlayPause() },
                     contentAlignment = Alignment.Center,
                 ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp)) }
-                Box(
-                    modifier = Modifier.size(34.dp).clip(CircleShape).background(SurfaceElevated).clickable { PlayerController.playNext() },
-                    contentAlignment = Alignment.Center,
-                ) { Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(18.dp)) }
+                SmallCtrlBtn(Icons.Rounded.SkipNext, Surface2) { PlayerController.playNext() }
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Song card (trending) — portrait with play overlay
-// ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun SongCard(song: Song, isPlaying: Boolean, onClick: () -> Unit) {
-    val pulseAlpha by rememberInfiniteTransition(label = "sp").animateFloat(
-        0.5f, 1f, infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "sp",
+private fun SmallCtrlBtn(icon: ImageVector, bg: Color, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier.size(32.dp).clip(CircleShape).background(bg).clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { Icon(icon, null, tint = OnBgSec, modifier = Modifier.size(17.dp)) }
+}
+
+// ── Song card (trending) — portrait ──────────────────────────────────────────
+@Composable
+private fun SongCard(song: Song, isCurrentPlaying: Boolean, onClick: () -> Unit) {
+    val pulse by rememberInfiniteTransition(label = "p").animateFloat(
+        .6f, 1f, infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "p"
     )
-
-    Column(modifier = Modifier.width(140.dp).clickable(onClick = onClick)) {
-        Box(modifier = Modifier.size(140.dp).clip(RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
+    Column(modifier = Modifier.width(138.dp).clickable(onClick = onClick)) {
+        Box(modifier = Modifier.size(138.dp).clip(RoundedCornerShape(16.dp)).background(Surface1)) {
             val url = song.getImageUrl()
-            if (url.isNotEmpty()) {
-                AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-            } else {
-                Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(SurfaceElevated, SurfaceCard))), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(40.dp))
-                }
+            if (url.isNotEmpty()) AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            else Box(Modifier.fillMaxSize().background(Surface2), contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.MusicNote, null, tint = PurpleLight.copy(.5f), modifier = Modifier.size(42.dp))
             }
-            // Dark scrim
-            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(0.6f)))))
-            // Play button
+            // Bottom scrim
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(.55f)))))
+            // Play badge
             Box(
-                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp).size(32.dp).clip(CircleShape)
-                    .background(if (isPlaying) Brush.linearGradient(listOf(VioletPrimary.copy(pulseAlpha), PinkAccent.copy(pulseAlpha))) else Brush.linearGradient(listOf(Color.Black.copy(0.7f), Color.Black.copy(0.7f)))),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp).size(30.dp).clip(CircleShape)
+                    .background(if (isCurrentPlaying) Brush.linearGradient(listOf(Purple.copy(pulse), Pink.copy(pulse))) else Brush.linearGradient(listOf(Color.Black.copy(.65f), Color.Black.copy(.65f)))),
                 contentAlignment = Alignment.Center,
-            ) {
-                Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(18.dp))
-            }
-            if (isPlaying) {
-                Box(Modifier.align(Alignment.TopStart).padding(6.dp).clip(RoundedCornerShape(6.dp)).background(VioletPrimary.copy(0.9f)).padding(horizontal = 6.dp, vertical = 2.dp)) {
-                    Text("PLAYING", style = MaterialTheme.typography.labelSmall, color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-                }
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Album card — square, real API image
-// ─────────────────────────────────────────────────────────────────────────────
-@Composable
-private fun AlbumCard(song: Song, isPlaying: Boolean, onClick: () -> Unit) {
-    Column(modifier = Modifier.width(130.dp).clickable(onClick = onClick)) {
-        Box(modifier = Modifier.size(130.dp).clip(RoundedCornerShape(14.dp)).background(SurfaceElevated)) {
-            val url = song.getImageUrl()
-            if (url.isNotEmpty()) {
-                AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-            } else {
-                Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF1A0A3A), Color(0xFF2D1566)))), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Album, null, tint = VioletSoft.copy(0.4f), modifier = Modifier.size(44.dp))
-                }
-            }
-            if (isPlaying) {
-                Box(Modifier.fillMaxSize().background(VioletPrimary.copy(0.25f)))
-                Icon(Icons.Rounded.VolumeUp, null, tint = Color.White, modifier = Modifier.size(22.dp).align(Alignment.Center))
+            ) { Icon(if (isCurrentPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(16.dp)) }
+            // Playing chip
+            if (isCurrentPlaying) {
+                Box(
+                    Modifier.align(Alignment.TopStart).padding(6.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Purple.copy(.9f))
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                ) { Text("♪ PLAYING", style = MaterialTheme.typography.labelSmall, color = Color.White, fontSize = 8.sp, letterSpacing = .5.sp) }
             }
         }
         Spacer(Modifier.height(7.dp))
-        Text(song.album?.name ?: song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1)
+        Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = OnBg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = OnBgSec, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Artist card — circle, real API image
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Album card (new releases) — square ───────────────────────────────────────
+@Composable
+private fun AlbumCard(song: Song, isPlaying: Boolean, onClick: () -> Unit) {
+    Column(modifier = Modifier.width(128.dp).clickable(onClick = onClick)) {
+        Box(modifier = Modifier.size(128.dp).clip(RoundedCornerShape(14.dp)).background(Surface1)) {
+            val url = song.getImageUrl()
+            if (url.isNotEmpty()) AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            else Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Surface1, Surface2))), contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.Album, null, tint = PurpleLight.copy(.3f), modifier = Modifier.size(44.dp))
+            }
+            if (isPlaying) {
+                Box(Modifier.fillMaxSize().background(Purple.copy(.22f)))
+                Icon(Icons.Rounded.VolumeUp, null, tint = Color.White, modifier = Modifier.size(20.dp).align(Alignment.Center))
+            }
+        }
+        Spacer(Modifier.height(7.dp))
+        Text(song.album?.name ?: song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = OnBg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = OnBgSec, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+// ── Artist card — circle with real API image ──────────────────────────────────
 @Composable
 private fun ArtistCard(artist: ArtistResult) {
-    Column(
-        modifier = Modifier.width(80.dp).clickable {},
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+    Column(modifier = Modifier.width(78.dp).clickable {}, horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
-            modifier = Modifier.size(76.dp).clip(CircleShape).background(SurfaceElevated)
-                .border(2.dp, Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f))), CircleShape),
+            modifier = Modifier.size(74.dp).clip(CircleShape).background(Surface1)
+                .border(2.dp, Brush.linearGradient(listOf(Purple.copy(.55f), Pink.copy(.4f))), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             val url = artist.getImageUrl()
-            if (url.isNotEmpty()) {
-                AsyncImage(url, artist.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-            } else {
-                Icon(Icons.Rounded.Person, null, tint = Color(0xFF5A5A7A), modifier = Modifier.size(32.dp))
-            }
+            if (url.isNotEmpty()) AsyncImage(url, artist.name, Modifier.fillMaxSize().clip(CircleShape), contentScale = ContentScale.Crop)
+            else Icon(Icons.Rounded.Person, null, tint = OnBgTer, modifier = Modifier.size(30.dp))
         }
-        Spacer(Modifier.height(7.dp))
-        Text(
-            artist.name,
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = 11.sp,
-            color = Color(0xFFCCCCDD),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Spacer(Modifier.height(6.dp))
+        Text(artist.name, style = MaterialTheme.typography.labelSmall, fontSize = 11.sp, color = OnBgSec, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Recent card — landscape thumbnail
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Chart row ─────────────────────────────────────────────────────────────────
 @Composable
-private fun RecentCard(song: Song, isPlaying: Boolean, onClick: () -> Unit) {
+private fun ChartRow(rank: Int, song: Song, isPlaying: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
-            .width(240.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(SurfaceCard)
-            .border(1.dp, if (isPlaying) Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f))) else Brush.linearGradient(listOf(Color(0xFF2A2A40), Color(0xFF2A2A40))), RoundedCornerShape(14.dp))
+            .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(10.dp),
+            .background(if (isPlaying) Purple.copy(.06f) else Color.Transparent)
+            .padding(horizontal = 20.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).background(SurfaceElevated)) {
+        // Rank number
+        Box(modifier = Modifier.width(28.dp), contentAlignment = Alignment.Center) {
+            Text(
+                "$rank",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (rank <= 3) Purple else OnBgTer,
+                fontSize = if (rank <= 3) 16.sp else 13.sp,
+            )
+        }
+        // Art
+        Box(modifier = Modifier.size(50.dp).clip(RoundedCornerShape(10.dp)).background(Surface1)) {
             val url = song.getImageUrl()
             if (url.isNotEmpty()) AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-            else Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(24.dp).align(Alignment.Center))
+            else Icon(Icons.Rounded.MusicNote, null, tint = PurpleLight.copy(.5f), modifier = Modifier.size(22.dp).align(Alignment.Center))
+            if (isPlaying) {
+                Box(Modifier.fillMaxSize().background(Purple.copy(.22f)))
+                Icon(Icons.Rounded.VolumeUp, null, tint = Color.White, modifier = Modifier.size(16.dp).align(Alignment.Center))
+            }
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = if (isPlaying) VioletSoft else Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1)
+            Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = if (isPlaying) PurpleLight else OnBg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = OnBgSec, maxLines = 1)
         }
-        Box(
-            modifier = Modifier.size(32.dp).clip(CircleShape).background(if (isPlaying) Brush.linearGradient(listOf(VioletPrimary, PinkAccent)) else Brush.linearGradient(listOf(SurfaceElevated, SurfaceElevated))),
-            contentAlignment = Alignment.Center,
-        ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(17.dp)) }
+        song.duration?.let { d ->
+            Text("%d:%02d".format(d / 60, d % 60), style = MaterialTheme.typography.labelSmall, color = OnBgTer)
+        }
+        Icon(Icons.Rounded.MoreVert, null, tint = OnBgTer, modifier = Modifier.size(16.dp))
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Section header
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Recent card — horizontal pill ────────────────────────────────────────────
 @Composable
-private fun SectionHeader(title: String, action: String, onAction: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
+private fun RecentCard(song: Song, isPlaying: Boolean, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.width(210.dp).clip(RoundedCornerShape(14.dp)).clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        color = Surface0,
+        border = if (isPlaying) BorderStroke(1.dp, Brush.linearGradient(listOf(Purple.copy(.5f), Pink.copy(.4f))))
+                 else BorderStroke(1.dp, Surface3),
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.weight(1f))
-        TextButton(onClick = onAction) {
-            Text(action, style = MaterialTheme.typography.labelMedium, color = VioletSoft)
+        Row(
+            modifier = Modifier.padding(9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(modifier = Modifier.size(46.dp).clip(RoundedCornerShape(10.dp)).background(Surface2)) {
+                val url = song.getImageUrl()
+                if (url.isNotEmpty()) AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                else Icon(Icons.Rounded.MusicNote, null, tint = PurpleLight.copy(.5f), modifier = Modifier.size(22.dp).align(Alignment.Center))
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = if (isPlaying) PurpleLight else OnBg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = OnBgSec, maxLines = 1)
+            }
+            Box(
+                modifier = Modifier.size(30.dp).clip(CircleShape)
+                    .background(if (isPlaying) Brush.linearGradient(listOf(Purple, Pink)) else Brush.linearGradient(listOf(Surface2, Surface2))),
+                contentAlignment = Alignment.Center,
+            ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(15.dp)) }
         }
     }
 }

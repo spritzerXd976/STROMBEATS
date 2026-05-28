@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -31,108 +32,99 @@ import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 import kotlinx.coroutines.delay
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Container
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Full-screen player ────────────────────────────────────────────────────────
 @Composable
 fun PlayerSheet(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
     Box(
-        modifier = Modifier.fillMaxSize().background(SurfaceDark),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Bg),
     ) {
-        // Top gradient tint from album art (static, API 24 safe)
-        Box(
-            modifier = Modifier.fillMaxSize()
-                .background(Brush.verticalGradient(listOf(VioletPrimary.copy(0.15f), SurfaceDark, SurfaceDark)))
-        )
-        // Ambient orbs
-        Box(Modifier.size(260.dp).offset((-50).dp, (-40).dp).clip(CircleShape)
-            .background(Brush.radialGradient(listOf(VioletPrimary.copy(0.18f), Color.Transparent))))
-        Box(Modifier.size(200.dp).align(Alignment.BottomEnd).offset(40.dp, 40.dp).clip(CircleShape)
-            .background(Brush.radialGradient(listOf(PinkAccent.copy(0.14f), Color.Transparent))))
+        // Ambient tint from primary colour (no blur needed — API 24+)
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Purple.copy(.12f), Bg, Bg, Bg))))
+        // Violet orb top-left
+        Box(Modifier.size(240.dp).offset((-60).dp, (-50).dp).clip(CircleShape)
+            .background(Brush.radialGradient(listOf(Purple.copy(.2f), Color.Transparent))))
+        // Pink orb bottom-right
+        Box(Modifier.size(200.dp).align(Alignment.BottomEnd).offset(50.dp, 50.dp).clip(CircleShape)
+            .background(Brush.radialGradient(listOf(Pink.copy(.15f), Color.Transparent))))
 
         PlayerContent(song = song, onDismiss = onDismiss)
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Content
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Player content ────────────────────────────────────────────────────────────
 @Composable
 fun PlayerContent(song: Song, onDismiss: () -> Unit) {
     val isPlaying  by PlayerController.isPlaying.collectAsState()
-    val queue      = remember { PlayerController.getQueue() }
+    val queue      = remember(song) { PlayerController.getQueue() }
 
-    var positionMs    by remember { mutableLongStateOf(0L) }
-    var durationMs    by remember { mutableLongStateOf(0L) }
-    var isUserSeeking by remember { mutableStateOf(false) }
-    var isShuffleOn   by remember { mutableStateOf(false) }
-    var repeatMode    by remember { mutableIntStateOf(0) }
-    var isLiked       by remember { mutableStateOf(false) }
-    var showQueue     by remember { mutableStateOf(false) }
+    var posMs       by remember { mutableLongStateOf(0L) }
+    var durMs       by remember { mutableLongStateOf(0L) }
+    var seeking     by remember { mutableStateOf(false) }
+    var shuffle     by remember { mutableStateOf(false) }
+    var repeat      by remember { mutableIntStateOf(0) } // 0=off 1=all 2=one
+    var liked       by remember { mutableStateOf(false) }
+    var showQueue   by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         while (true) {
-            if (!isUserSeeking) {
-                positionMs = PlayerController.getCurrentPosition()
-                durationMs = PlayerController.getDuration()
-            }
+            if (!seeking) { posMs = PlayerController.getCurrentPosition(); durMs = PlayerController.getDuration() }
             delay(300)
         }
     }
 
-    val progress = if (durationMs > 0) positionMs.toFloat() / durationMs.toFloat() else 0f
-
-    // Scale art when paused
-    val artScale by animateFloatAsState(
-        targetValue = if (isPlaying) 1f else 0.88f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "scale",
-    )
-    val glowAlpha by rememberInfiniteTransition(label = "glow").animateFloat(
-        0f, 0.35f, infiniteRepeatable(tween(2000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "gA",
-    )
+    val progress  = if (durMs > 0) (posMs.toFloat() / durMs.toFloat()).coerceIn(0f, 1f) else 0f
+    val artScale  by animateFloatAsState(if (isPlaying) 1f else .87f, spring(Spring.DampingRatioMediumBouncy), label = "s")
+    val glowAlpha by rememberInfiniteTransition(label = "g").animateFloat(0f, .3f, infiniteRepeatable(tween(2000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "g")
 
     Column(
-        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
 
-        // ── Top bar ──────────────────────────────────────────────────────────
+        // ── Top bar ───────────────────────────────────────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onDismiss) {
-                Icon(Icons.Rounded.KeyboardArrowDown, null, tint = Color.White, modifier = Modifier.size(28.dp))
+                Icon(Icons.Rounded.KeyboardArrowDown, null, tint = OnBg, modifier = Modifier.size(28.dp))
             }
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = VioletSoft, letterSpacing = 1.5.sp, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+                Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = PurpleLight, letterSpacing = 1.5.sp, fontSize = 9.sp)
                 song.album?.name?.takeIf { it.isNotEmpty() }?.let {
-                    Text(it, style = MaterialTheme.typography.labelMedium, color = Color(0xFFCCCCDD), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(it, style = MaterialTheme.typography.labelMedium, color = OnBgSec, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             IconButton(onClick = {}) {
-                Icon(Icons.Rounded.MoreVert, null, tint = Color(0xFF8888AA), modifier = Modifier.size(20.dp))
+                Icon(Icons.Rounded.MoreVert, null, tint = OnBgSec, modifier = Modifier.size(20.dp))
             }
         }
 
-        // ── Album art ────────────────────────────────────────────────────────
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
-        Box(modifier = Modifier.size((280 * artScale).dp), contentAlignment = Alignment.Center) {
-            // Glow (API-24-safe, no blur)
+        // ── Album art ─────────────────────────────────────────────────────────
+        Box(modifier = Modifier.size((272 * artScale).dp), contentAlignment = Alignment.Center) {
+            // Glow ring when playing
             if (isPlaying) {
                 Box(
-                    modifier = Modifier.size((300 * artScale).dp).clip(RoundedCornerShape(30.dp))
-                        .background(Brush.radialGradient(listOf(VioletPrimary.copy(glowAlpha), PinkAccent.copy(glowAlpha * 0.5f), Color.Transparent)))
+                    modifier = Modifier.size((292 * artScale).dp).clip(RoundedCornerShape(30.dp))
+                        .background(Brush.radialGradient(listOf(Purple.copy(glowAlpha), Pink.copy(glowAlpha * .5f), Color.Transparent)))
                 )
             }
+            // Art
             Box(
-                modifier = Modifier.size((280 * artScale).dp).clip(RoundedCornerShape(24.dp))
+                modifier = Modifier
+                    .size((272 * artScale).dp)
+                    .clip(RoundedCornerShape(22.dp))
                     .border(
-                        if (isPlaying) 2.dp else 1.dp,
-                        Brush.linearGradient(if (isPlaying) listOf(VioletPrimary, PinkAccent) else listOf(Color(0xFF2A2A40), Color(0xFF2A2A40))),
-                        RoundedCornerShape(24.dp),
+                        width = if (isPlaying) 2.dp else 1.dp,
+                        brush = Brush.linearGradient(if (isPlaying) listOf(Purple, Pink) else listOf(Surface3, Surface3)),
+                        shape = RoundedCornerShape(22.dp),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -140,192 +132,204 @@ fun PlayerContent(song: Song, onDismiss: () -> Unit) {
                 if (img.isNotEmpty()) {
                     AsyncImage(img, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 } else {
-                    Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF1A0A3A), Color(0xFF2D1566)))), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.MusicNote, null, modifier = Modifier.size(80.dp), tint = VioletSoft)
+                    Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Surface1, Surface2))), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.MusicNote, null, modifier = Modifier.size(80.dp), tint = PurpleLight)
                     }
                 }
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(22.dp))
 
-        // ── Song info + like ─────────────────────────────────────────────────
+        // ── Song info ─────────────────────────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Artist image (small circle)
+            // Small artist avatar
             Box(
-                modifier = Modifier.size(36.dp).clip(CircleShape).background(SurfaceElevated)
-                    .border(1.dp, Brush.linearGradient(listOf(VioletPrimary.copy(0.4f), PinkAccent.copy(0.3f))), CircleShape),
+                modifier = Modifier.size(34.dp).clip(CircleShape).background(Surface2)
+                    .border(1.5.dp, Brush.linearGradient(listOf(Purple.copy(.4f), Pink.copy(.3f))), CircleShape),
+                contentAlignment = Alignment.Center,
             ) {
-                val artistImg = song.getPrimaryArtistImage()
-                if (artistImg.isNotEmpty()) {
-                    AsyncImage(artistImg, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                } else {
-                    Icon(Icons.Rounded.Person, null, tint = Color(0xFF5A5A7A), modifier = Modifier.size(18.dp).align(Alignment.Center))
-                }
+                val artImg = song.getPrimaryArtistImage()
+                if (artImg.isNotEmpty()) AsyncImage(artImg, null, Modifier.fillMaxSize().clip(CircleShape), contentScale = ContentScale.Crop)
+                else Icon(Icons.Rounded.Person, null, tint = OnBgTer, modifier = Modifier.size(16.dp))
             }
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(song.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(song.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = OnBg, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    if (song.explicitContent) {
-                        Surface(shape = RoundedCornerShape(3.dp), color = SurfaceElevated) {
-                            Text("E", style = MaterialTheme.typography.labelSmall, color = Color(0xFF7777AA), modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp))
-                        }
-                    }
-                    Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodyMedium, color = Color(0xFF8888BB), maxLines = 1)
+                    if (song.explicitContent) ExplicitBadge()
+                    Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodyMedium, color = OnBgSec, maxLines = 1)
                 }
             }
-            Spacer(Modifier.width(12.dp))
-            Box(
-                modifier = Modifier.size(44.dp).clip(CircleShape)
-                    .background(if (isLiked) Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.2f))) else Brush.linearGradient(listOf(SurfaceElevated, SurfaceElevated)))
-                    .border(1.dp, if (isLiked) Brush.linearGradient(listOf(VioletPrimary.copy(0.6f), PinkAccent.copy(0.5f))) else Brush.linearGradient(listOf(Color(0xFF2A2A40), Color(0xFF2A2A40))), CircleShape)
-                    .clickable { isLiked = !isLiked },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(if (isLiked) Icons.Rounded.Favorite else Icons.Outlined.FavoriteBorder, null, tint = if (isLiked) PinkAccent else Color(0xFF6666AA), modifier = Modifier.size(20.dp))
-            }
+            Spacer(Modifier.width(10.dp))
+            // Like button
+            LikeButton(liked) { liked = !liked }
         }
 
         Spacer(Modifier.height(20.dp))
 
-        // ── Seekbar ──────────────────────────────────────────────────────────
-        Column(modifier = Modifier.padding(horizontal = 28.dp)) {
+        // ── Seek bar ──────────────────────────────────────────────────────────
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp)) {
             Slider(
-                value = progress.coerceIn(0f, 1f),
-                onValueChange = { v -> isUserSeeking = true; positionMs = (v * durationMs.coerceAtLeast(1L)).toLong() },
-                onValueChangeFinished = { PlayerController.seekTo(positionMs); isUserSeeking = false },
+                value = progress,
+                onValueChange = { v -> seeking = true; posMs = (v * durMs.coerceAtLeast(1L)).toLong() },
+                onValueChangeFinished = { PlayerController.seekTo(posMs); seeking = false },
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(
-                    thumbColor = Color.White,
-                    activeTrackColor = VioletPrimary,
-                    inactiveTrackColor = Color(0xFF252540),
-                    activeTickColor = Color.Transparent,
-                    inactiveTickColor = Color.Transparent,
+                    thumbColor         = Color.White,
+                    activeTrackColor   = Purple,
+                    inactiveTrackColor = Surface3,
+                    activeTickColor    = Color.Transparent,
+                    inactiveTickColor  = Color.Transparent,
                 ),
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(fmtMs(positionMs), style = MaterialTheme.typography.labelSmall, color = Color(0xFF7777AA))
-                Text(fmtMs(durationMs), style = MaterialTheme.typography.labelSmall, color = Color(0xFF7777AA))
+                Text(fmt(posMs), style = MaterialTheme.typography.labelSmall, color = OnBgTer)
+                Text(fmt(durMs), style = MaterialTheme.typography.labelSmall, color = OnBgTer)
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(14.dp))
 
-        // ── Transport controls ───────────────────────────────────────────────
+        // ── Transport controls ────────────────────────────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Shuffle
-            CtrlBtn(
-                icon = Icons.Rounded.Shuffle, size = 44,
-                bg = if (isShuffleOn) Brush.linearGradient(listOf(VioletPrimary.copy(0.18f), PinkAccent.copy(0.12f))) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
-                tint = if (isShuffleOn) VioletSoft else Color(0xFF4A4A6A), iconSz = 20,
-                onClick = { isShuffleOn = !isShuffleOn },
+            CtrlIcon(
+                icon   = Icons.Rounded.Shuffle,
+                size   = 44.dp,
+                tint   = if (shuffle) Purple else OnBgTer,
+                bgBrush = if (shuffle) Brush.linearGradient(listOf(Purple.copy(.15f), Pink.copy(.1f))) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
+                onClick = { shuffle = !shuffle },
             )
             // Prev
-            CtrlBtn(Icons.Rounded.SkipPrevious, 54, Brush.linearGradient(listOf(SurfaceElevated, SurfaceElevated)), Color.White, 28) { PlayerController.playPrevious() }
-            // Play / Pause — large
+            CtrlIcon(Icons.Rounded.SkipPrevious, 52.dp, OnBg, Brush.linearGradient(listOf(Surface1, Surface1))) { PlayerController.playPrevious() }
+            // Play / Pause — main button
             Box(
-                modifier = Modifier.size(66.dp).clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
+                modifier = Modifier.size(64.dp).clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(Purple, Pink)))
                     .clickable { PlayerController.togglePlayPause() },
                 contentAlignment = Alignment.Center,
-            ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(36.dp)) }
+            ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(34.dp)) }
             // Next
-            CtrlBtn(Icons.Rounded.SkipNext, 54, Brush.linearGradient(listOf(SurfaceElevated, SurfaceElevated)), Color.White, 28) { PlayerController.playNext() }
+            CtrlIcon(Icons.Rounded.SkipNext, 52.dp, OnBg, Brush.linearGradient(listOf(Surface1, Surface1))) { PlayerController.playNext() }
             // Repeat
-            CtrlBtn(
-                icon = if (repeatMode == 2) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat, size = 44,
-                bg = if (repeatMode != 0) Brush.linearGradient(listOf(CyanAccent.copy(0.18f), CyanAccent.copy(0.1f))) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
-                tint = if (repeatMode == 0) Color(0xFF4A4A6A) else CyanAccent, iconSz = 20,
-                onClick = { repeatMode = (repeatMode + 1) % 3 },
+            CtrlIcon(
+                icon    = if (repeat == 2) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat,
+                size    = 44.dp,
+                tint    = if (repeat != 0) Cyan else OnBgTer,
+                bgBrush = if (repeat != 0) Brush.linearGradient(listOf(Cyan.copy(.15f), Cyan.copy(.08f))) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
+                onClick = { repeat = (repeat + 1) % 3 },
             )
         }
 
         Spacer(Modifier.height(22.dp))
 
-        // ── Utility row ──────────────────────────────────────────────────────
+        // ── Utility row ───────────────────────────────────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            UtilBtn(Icons.Rounded.QueueMusic, "Queue",  VioletSoft)   { showQueue = !showQueue }
-            UtilBtn(Icons.Rounded.DarkMode,   "Sleep",  Color(0xFF60A5FA)) {}
-            UtilBtn(Icons.Rounded.Description,"Lyrics", PinkSoft)     {}
-            UtilBtn(Icons.Rounded.Equalizer,  "EQ",     CyanAccent)   {}
-            UtilBtn(Icons.Rounded.Share,       "Share",  Color(0xFF9999BB)) {}
+            UtilButton(Icons.Rounded.QueueMusic, "Queue",  PurpleLight) { showQueue = !showQueue }
+            UtilButton(Icons.Rounded.Description, "Lyrics", PinkLight)  {}
+            UtilButton(Icons.Rounded.DarkMode,   "Sleep",  Color(0xFF60A5FA)) {}
+            UtilButton(Icons.Rounded.Equalizer,  "EQ",     Cyan) {}
+            UtilButton(Icons.Rounded.Share,       "Share",  OnBgSec) {}
         }
 
         // ── Up Next queue ─────────────────────────────────────────────────────
         if (showQueue && queue.size > 1) {
             Spacer(Modifier.height(16.dp))
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), thickness = 0.5.dp, color = Color(0xFF1E1E32))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp), thickness = 0.5.dp, color = Surface3)
             Spacer(Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Up Next", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.weight(1f))
-                TextButton(onClick = { showQueue = false }) { Text("Close", style = MaterialTheme.typography.labelMedium, color = VioletSoft) }
+            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Up Next", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = OnBg, modifier = Modifier.weight(1f))
+                TextButton(onClick = { showQueue = false }) { Text("Close", style = MaterialTheme.typography.labelMedium, color = PurpleLight) }
             }
-            val currentId = song.id
-            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp)) {
-                itemsIndexed(queue.filter { it.id != currentId }.take(5), key = { _, s -> "q${s.id}" }) { _, qs ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable { PlayerController.playSong(qs, queue) }.padding(horizontal = 20.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Box(modifier = Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(SurfaceElevated)) {
-                            val qUrl = qs.getImageUrl()
-                            if (qUrl.isNotEmpty()) AsyncImage(qUrl, qs.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                            else Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft.copy(0.5f), modifier = Modifier.size(20.dp).align(Alignment.Center))
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(qs.name, style = MaterialTheme.typography.titleSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(qs.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1)
-                        }
-                        Icon(Icons.Rounded.MoreVert, null, tint = Color(0xFF44445A), modifier = Modifier.size(17.dp))
-                    }
+            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 210.dp)) {
+                itemsIndexed(queue.filter { it.id != song.id }.take(5), key = { _, s -> "q${s.id}" }) { _, qs ->
+                    QueueRow(qs, onClick = { PlayerController.playSong(qs, queue) })
                 }
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-composables
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Sub-composables ───────────────────────────────────────────────────────────
 @Composable
-private fun CtrlBtn(icon: ImageVector, size: Int, bg: Brush, tint: Color, iconSz: Int, onClick: () -> Unit) {
-    Box(modifier = Modifier.size(size.dp).clip(CircleShape).background(bg).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
-        Icon(icon, null, tint = tint, modifier = Modifier.size(iconSz.dp))
+private fun CtrlIcon(icon: ImageVector, size: Dp, tint: Color, bgBrush: Brush, onClick: () -> Unit) {
+    Box(modifier = Modifier.size(size).clip(CircleShape).background(bgBrush).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(size * .52f))
     }
 }
 
 @Composable
-private fun UtilBtn(icon: ImageVector, label: String, tint: Color, onClick: () -> Unit) {
+private fun UtilButton(icon: ImageVector, label: String, tint: Color, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
         modifier = Modifier.clickable(onClick = onClick),
     ) {
         Box(
-            modifier = Modifier.size(46.dp).clip(RoundedCornerShape(13.dp)).background(SurfaceCard)
-                .border(1.dp, Brush.linearGradient(listOf(Color(0xFF2A2A40), Color(0xFF1E1E32))), RoundedCornerShape(13.dp)),
+            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(13.dp)).background(Surface1)
+                .border(1.dp, Surface3, RoundedCornerShape(13.dp)),
             contentAlignment = Alignment.Center,
-        ) { Icon(icon, null, tint = tint, modifier = Modifier.size(19.dp)) }
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color(0xFF5555AA), fontSize = 10.sp)
+        ) { Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp)) }
+        Text(label, style = MaterialTheme.typography.labelSmall, color = OnBgTer, fontSize = 10.sp)
     }
 }
 
-private fun fmtMs(ms: Long): String {
-    val s = ms / 1000
-    return "%d:%02d".format(s / 60, s % 60)
+@Composable
+private fun QueueRow(song: Song, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 24.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(modifier = Modifier.size(42.dp).clip(RoundedCornerShape(9.dp)).background(Surface2)) {
+            val url = song.getImageUrl()
+            if (url.isNotEmpty()) AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            else Icon(Icons.Rounded.MusicNote, null, tint = PurpleLight.copy(.5f), modifier = Modifier.size(18.dp).align(Alignment.Center))
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(song.name, style = MaterialTheme.typography.titleSmall, color = OnBg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = OnBgSec, maxLines = 1)
+        }
+        Icon(Icons.Rounded.MoreVert, null, tint = OnBgTer, modifier = Modifier.size(16.dp))
+    }
 }
+
+@Composable
+private fun LikeButton(liked: Boolean, onToggle: () -> Unit) {
+    Box(
+        modifier = Modifier.size(42.dp).clip(CircleShape)
+            .background(if (liked) Brush.linearGradient(listOf(Purple.copy(.2f), Pink.copy(.2f))) else Brush.linearGradient(listOf(Surface1, Surface1)))
+            .border(1.dp, if (liked) Brush.linearGradient(listOf(Purple.copy(.6f), Pink.copy(.5f))) else Brush.linearGradient(listOf(Surface3, Surface3)), CircleShape)
+            .clickable(onClick = onToggle),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            if (liked) Icons.Rounded.Favorite else Icons.Outlined.FavoriteBorder,
+            null,
+            tint   = if (liked) Pink else OnBgTer,
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
+
+@Composable
+private fun ExplicitBadge() {
+    Surface(shape = RoundedCornerShape(3.dp), color = Surface2) {
+        Text("E", style = MaterialTheme.typography.labelSmall, color = OnBgTer, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp))
+    }
+}
+
+private fun fmt(ms: Long): String { val s = ms / 1000; return "%d:%02d".format(s / 60, s % 60) }

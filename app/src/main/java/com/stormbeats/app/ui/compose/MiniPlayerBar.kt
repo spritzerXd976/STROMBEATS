@@ -32,9 +32,9 @@ fun MiniPlayerBar(
     onExpandClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val inf = rememberInfiniteTransition(label = "mini")
+    val inf = rememberInfiniteTransition(label = "mp")
     val shimmerX by inf.animateFloat(-600f, 1200f, infiniteRepeatable(tween(2400, easing = LinearEasing)), label = "sx")
-    val breathe  by inf.animateFloat(0.6f, 1f, infiniteRepeatable(tween(1200), RepeatMode.Reverse), label = "br")
+    val breathe  by inf.animateFloat(.65f, 1f,  infiniteRepeatable(tween(1100), RepeatMode.Reverse), label = "br")
 
     var posMs by remember { mutableLongStateOf(0L) }
     var durMs by remember { mutableLongStateOf(1L) }
@@ -52,64 +52,59 @@ fun MiniPlayerBar(
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 5.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(SurfaceCard)
-            .border(
-                1.dp,
-                Brush.linearGradient(if (isPlaying) listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f)) else listOf(Color(0xFF2A2A40), Color(0xFF1E1E32))),
-                RoundedCornerShape(18.dp),
-            )
+            .background(Surface0)
+            .border(1.dp, if (isPlaying) Brush.linearGradient(listOf(Purple.copy(.5f), Pink.copy(.4f))) else Brush.linearGradient(listOf(Surface3, Surface3)), RoundedCornerShape(18.dp))
             .clickable(onClick = onExpandClick),
     ) {
-        // Progress line bottom
-        Box(Modifier.fillMaxWidth(prog).height(2.dp).align(Alignment.BottomStart).background(Brush.horizontalGradient(listOf(VioletPrimary, PinkAccent))))
-        // Shimmer line top
+        // Progress line at bottom
+        Box(Modifier.fillMaxWidth(prog).height(2.dp).align(Alignment.BottomStart).background(Brush.horizontalGradient(listOf(Purple, Pink))))
+        // Shimmer at top when playing
         if (isPlaying) {
             Box(
                 Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(
-                    Brush.horizontalGradient(listOf(Color.Transparent, VioletPrimary.copy(0.8f), PinkAccent.copy(0.6f), Color.Transparent), startX = shimmerX, endX = shimmerX + 600f)
+                    Brush.horizontalGradient(listOf(Color.Transparent, Purple.copy(.8f), Pink.copy(.6f), Color.Transparent), startX = shimmerX, endX = shimmerX + 600f)
                 )
             )
         }
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Art with breathing border
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+            // Art with breathing glow border
             Box(modifier = Modifier.size(50.dp), contentAlignment = Alignment.Center) {
                 if (isPlaying) {
-                    val sz = (50 * (0.94f + breathe * 0.12f)).dp
-                    Box(Modifier.size(sz).clip(RoundedCornerShape(12.dp)).background(Brush.linearGradient(listOf(VioletPrimary.copy(breathe * 0.28f), PinkAccent.copy(breathe * 0.2f)))))
+                    val sz = (50 * (.93f + breathe * .12f)).dp
+                    Box(Modifier.size(sz).clip(RoundedCornerShape(12.dp))
+                        .background(Brush.linearGradient(listOf(Purple.copy(breathe * .25f), Pink.copy(breathe * .18f)))))
                 }
-                Box(Modifier.size(48.dp).clip(RoundedCornerShape(11.dp)).border(1.dp, Brush.linearGradient(if (isPlaying) listOf(VioletPrimary.copy(0.55f), PinkAccent.copy(0.5f)) else listOf(Color(0xFF2A2A40), Color(0xFF2A2A40))), RoundedCornerShape(11.dp))) {
+                Box(
+                    Modifier.size(48.dp).clip(RoundedCornerShape(11.dp))
+                        .border(1.dp, Brush.linearGradient(if (isPlaying) listOf(Purple.copy(.5f), Pink.copy(.4f)) else listOf(Surface3, Surface3)), RoundedCornerShape(11.dp)),
+                ) {
                     val url = song.getImageUrl()
                     if (url.isNotEmpty()) AsyncImage(url, song.name, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                    else Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF1A0A3A), Color(0xFF2D1566)))), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(22.dp))
+                    else Box(Modifier.fillMaxSize().background(Surface2), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.MusicNote, null, tint = PurpleLight, modifier = Modifier.size(22.dp))
                     }
                 }
             }
-
             Spacer(Modifier.width(11.dp))
-
             Column(modifier = Modifier.weight(1f)) {
-                Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(song.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = OnBg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = OnBgSec, maxLines = 1)
             }
-
             Spacer(Modifier.width(6.dp))
-
-            Box(Modifier.size(32.dp).clip(CircleShape).background(SurfaceElevated).clickable { PlayerController.playPrevious() }, contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(17.dp))
+            // Prev
+            Box(Modifier.size(32.dp).clip(CircleShape).background(Surface2).clickable { PlayerController.playPrevious() }, contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.SkipPrevious, null, tint = OnBgSec, modifier = Modifier.size(17.dp))
             }
             Spacer(Modifier.width(7.dp))
+            // Play/Pause
             Box(
-                modifier = Modifier.size(44.dp).clip(CircleShape).background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent))).clickable { PlayerController.togglePlayPause() },
+                modifier = Modifier.size(44.dp).clip(CircleShape).background(Brush.linearGradient(listOf(Purple, Pink))).clickable { PlayerController.togglePlayPause() },
                 contentAlignment = Alignment.Center,
             ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(22.dp)) }
             Spacer(Modifier.width(7.dp))
-            Box(Modifier.size(32.dp).clip(CircleShape).background(SurfaceElevated).clickable { PlayerController.playNext() }, contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(17.dp))
+            // Next
+            Box(Modifier.size(32.dp).clip(CircleShape).background(Surface2).clickable { PlayerController.playNext() }, contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.SkipNext, null, tint = OnBgSec, modifier = Modifier.size(17.dp))
             }
         }
     }

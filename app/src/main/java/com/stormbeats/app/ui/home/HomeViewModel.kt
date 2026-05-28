@@ -13,11 +13,14 @@ import kotlinx.coroutines.launch
 class HomeViewModel : ViewModel() {
     private val repo = MusicRepository()
 
-    private val _trending   = MutableStateFlow<List<Song>>(emptyList())
+    private val _trending    = MutableStateFlow<List<Song>>(emptyList())
     val trending: StateFlow<List<Song>> = _trending
 
     private val _newReleases = MutableStateFlow<List<Song>>(emptyList())
     val newReleases: StateFlow<List<Song>> = _newReleases
+
+    private val _topCharts   = MutableStateFlow<List<Song>>(emptyList())
+    val topCharts: StateFlow<List<Song>> = _topCharts
 
     private val _recentSongs = MutableStateFlow<List<Song>>(emptyList())
     val recentSongs: StateFlow<List<Song>> = _recentSongs
@@ -33,17 +36,18 @@ class HomeViewModel : ViewModel() {
     fun load() {
         viewModelScope.launch {
             _isLoading.value = true
+            // Run all API calls concurrently
+            val t  = async { repo.searchSongs("top hindi songs 2024",     limit = 10) }
+            val nr = async { repo.searchSongs("new bollywood 2024",       limit = 10) }
+            val tc = async { repo.searchSongs("english hits 2024",        limit = 10) }
+            val r  = async { repo.searchSongs("bollywood trending songs", limit = 10) }
+            val a  = async { repo.searchArtists("arijit singh pritam ar rahman neha kakkar", limit = 10) }
 
-            val t = async { repo.searchSongs("top hindi hits 2024",   limit = 10) }
-            val n = async { repo.searchSongs("new bollywood 2024",    limit = 10) }
-            val r = async { repo.searchSongs("bollywood trending",    limit = 8)  }
-            val a = async { repo.searchArtists("arijit pritam rahman neha", limit = 8) }
-
-            t.await().onSuccess { _trending.value    = it }
-            n.await().onSuccess { _newReleases.value = it }
-            r.await().onSuccess { _recentSongs.value = it }
-            a.await().onSuccess { _artists.value     = it }
-
+            t.await().onSuccess  { _trending.value    = it }
+            nr.await().onSuccess { _newReleases.value = it }
+            tc.await().onSuccess { _topCharts.value   = it }
+            r.await().onSuccess  { _recentSongs.value = it }
+            a.await().onSuccess  { _artists.value     = it }
             _isLoading.value = false
         }
     }
@@ -52,6 +56,6 @@ class HomeViewModel : ViewModel() {
         val list = _recentSongs.value.toMutableList()
         list.removeAll { it.id == song.id }
         list.add(0, song)
-        _recentSongs.value = list.take(12)
+        _recentSongs.value = list.take(20)
     }
 }

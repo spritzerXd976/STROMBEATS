@@ -31,77 +31,59 @@ fun SearchScreen(
     onSongClick: (Song) -> Unit,
     vm: SearchViewModel = viewModel(),
 ) {
-    val songs       by vm.songs.collectAsState()
-    val isLoading   by vm.isLoading.collectAsState()
-    val currentSong by PlayerController.currentSong.collectAsState()
-    var query       by remember { mutableStateOf("") }
-    val focusReq    = remember { FocusRequester() }
-    val keyboard    = LocalSoftwareKeyboardController.current
+    val songs   by vm.songs.collectAsState()
+    val loading by vm.isLoading.collectAsState()
+    val current by PlayerController.currentSong.collectAsState()
+    var query   by remember { mutableStateOf("") }
+    val focusReq = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
 
-    Column(
-        modifier = Modifier.fillMaxSize().background(SurfaceDark).statusBarsPadding(),
-    ) {
-        Spacer(Modifier.height(16.dp))
-
-        // Title
-        Text(
-            "Search", style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold, color = Color.White,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-        )
-
-        Spacer(Modifier.height(8.dp))
+    Column(modifier = Modifier.fillMaxSize().background(Bg).statusBarsPadding()) {
+        Spacer(Modifier.height(18.dp))
+        Text("Search", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = OnBg, modifier = Modifier.padding(horizontal = 20.dp))
+        Spacer(Modifier.height(12.dp))
 
         // Search field
         OutlinedTextField(
             value = query,
             onValueChange = { query = it; vm.search(it) },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).focusRequester(focusReq),
-            placeholder = { Text("Songs, artists, albums…", color = Color(0xFF44445A)) },
-            leadingIcon  = { Icon(Icons.Rounded.Search, null, tint = Color(0xFF7777AA)) },
+            placeholder = { Text("Songs, artists, albums…", color = OnBgTer) },
+            leadingIcon  = { Icon(Icons.Rounded.Search, null, tint = OnBgSec) },
             trailingIcon = {
                 AnimatedVisibility(query.isNotEmpty()) {
                     IconButton(onClick = { query = ""; vm.search("") }) {
-                        Icon(Icons.Rounded.Close, null, tint = Color(0xFF7777AA))
+                        Icon(Icons.Rounded.Close, null, tint = OnBgSec)
                     }
                 }
             },
             singleLine = true,
             shape = MaterialTheme.shapes.extraLarge,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor      = VioletPrimary,
-                unfocusedBorderColor    = Color(0xFF2A2A40),
-                focusedContainerColor   = SurfaceCard,
-                unfocusedContainerColor = SurfaceCard,
-                cursorColor             = VioletPrimary,
-                focusedTextColor        = Color.White,
-                unfocusedTextColor      = Color.White,
+                focusedBorderColor      = Purple,
+                unfocusedBorderColor    = Surface3,
+                focusedContainerColor   = Surface0,
+                unfocusedContainerColor = Surface0,
+                cursorColor             = Purple,
+                focusedTextColor        = OnBg,
+                unfocusedTextColor      = OnBg,
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
         )
+        Spacer(Modifier.height(8.dp))
 
-        Spacer(Modifier.height(6.dp))
-
-        AnimatedVisibility(isLoading) {
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(2.dp),
-                color = VioletPrimary, trackColor = SurfaceElevated,
-            )
+        AnimatedVisibility(loading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(2.dp), color = Purple, trackColor = Surface2)
         }
-
         AnimatedVisibility(songs.isNotEmpty()) {
-            Text(
-                "${songs.size} results", style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF5555AA),
-                modifier = Modifier.padding(horizontal = 22.dp, vertical = 4.dp),
-            )
+            Text("${songs.size} results", style = MaterialTheme.typography.labelSmall, color = OnBgTer, modifier = Modifier.padding(horizontal = 22.dp, vertical = 4.dp))
         }
 
         when {
-            query.isEmpty()              -> SearchHint()
-            isLoading && songs.isEmpty() -> {}
-            songs.isEmpty()              -> NoResults(query)
+            query.isEmpty()             -> SearchHint()
+            loading && songs.isEmpty()  -> {}
+            songs.isEmpty()             -> NoResults(query)
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -109,10 +91,11 @@ fun SearchScreen(
                 ) {
                     items(songs, key = { it.id }) { song ->
                         SongItem(
-                            song = song, isPlaying = currentSong?.id == song.id,
-                            onClick = { PlayerController.playSong(song, songs); onSongClick(song) },
+                            song = song,
+                            isPlaying = current?.id == song.id,
+                            onClick   = { PlayerController.playSong(song, songs); onSongClick(song) },
                         )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), thickness = 0.5.dp, color = Color(0xFF1A1A28))
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), thickness = 0.5.dp, color = Surface2)
                     }
                 }
             }
@@ -123,17 +106,18 @@ fun SearchScreen(
 @Composable private fun SearchHint() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Icon(Icons.Rounded.Search, null, modifier = Modifier.size(70.dp), tint = Color(0xFF22224A))
-            Text("Find your music", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Color(0xFF44445A))
-            Text("Powered by JioSaavn", style = MaterialTheme.typography.bodySmall, color = Color(0xFF2A2A4A))
+            Icon(Icons.Rounded.Search, null, modifier = Modifier.size(68.dp), tint = Surface3)
+            Text("Find your music", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = OnBgTer)
+            Text("Powered by JioSaavn", style = MaterialTheme.typography.bodySmall, color = Surface3)
         }
     }
 }
+
 @Composable private fun NoResults(q: String) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(Icons.Rounded.SearchOff, null, modifier = Modifier.size(64.dp), tint = Color(0xFF22224A))
-            Text("No results for \"$q\"", style = MaterialTheme.typography.titleMedium, color = Color(0xFF55557A))
+            Icon(Icons.Rounded.SearchOff, null, modifier = Modifier.size(64.dp), tint = Surface3)
+            Text("No results for \"$q\"", style = MaterialTheme.typography.titleMedium, color = OnBgTer)
         }
     }
 }
