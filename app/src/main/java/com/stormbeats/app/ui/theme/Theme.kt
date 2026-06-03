@@ -55,49 +55,49 @@ val StormBeatsShapes = Shapes(
 // Colour palette — Premium dark violet/pink
 // ─────────────────────────────────────────────────────────────────────────────
 
-val VioletPrimary   = Color(0xFF7C3AED)
-val PinkAccent      = Color(0xFFEC4899)
-val CyanAccent      = Color(0xFF06B6D4)
-val VioletSoft      = Color(0xFF8B5CF6)
-val PinkSoft        = Color(0xFFF472B6)
-val GradientStart   = Color(0xFF7C3AED)
-val GradientEnd     = Color(0xFFEC4899)
-val SurfaceDark     = Color(0xFF0D0D14)
-val SurfaceCard     = Color(0xFF13131E)
-val SurfaceElevated = Color(0xFF1A1A2E)
+val VioletPrimary   = Color(0xFF1E1E1E)
+val PinkAccent      = Color(0xFF2C2C2C)
+val CyanAccent      = Color(0xFF383838)
+val VioletSoft      = Color(0xFFE0E0E0)
+val PinkSoft        = Color(0xFFF5F5F5)
+val GradientStart   = Color(0xFF1A1A1A)
+val GradientEnd     = Color(0xFF2C2C2C)
+val SurfaceDark     = Color(0xFF121212)
+val SurfaceCard     = Color(0xFF1E1E1E)
+val SurfaceElevated = Color(0xFF2C2C2C)
 val OnAccent        = Color(0xFFFFFFFF)
 
 private val DarkColorScheme = darkColorScheme(
     primary              = VioletPrimary,
     onPrimary            = OnAccent,
-    primaryContainer     = Color(0xFF2D1566),
-    onPrimaryContainer   = Color(0xFFD8B4FE),
+    primaryContainer     = Color(0xFF2C2C2C),
+    onPrimaryContainer   = Color(0xFFFFFFFF),
     secondary            = PinkAccent,
     onSecondary          = Color(0xFFFFFFFF),
-    secondaryContainer   = Color(0xFF500724),
-    onSecondaryContainer = Color(0xFFFBCFE8),
+    secondaryContainer   = Color(0xFF383838),
+    onSecondaryContainer = Color(0xFFFFFFFF),
     tertiary             = CyanAccent,
     onTertiary           = Color(0xFF000000),
-    tertiaryContainer    = Color(0xFF083344),
-    onTertiaryContainer  = Color(0xFFA5F3FC),
+    tertiaryContainer    = Color(0xFF1A1A1A),
+    onTertiaryContainer  = Color(0xFFFFFFFF),
     background           = SurfaceDark,
     onBackground         = Color(0xFFFFFFFF),
     surface              = SurfaceDark,
     onSurface            = Color(0xFFFFFFFF),
     surfaceVariant       = SurfaceCard,
-    onSurfaceVariant     = Color(0xFFB0B0C8),
+    onSurfaceVariant     = Color(0xFFB3B3B3),
     surfaceContainer         = SurfaceCard,
     surfaceContainerHigh     = SurfaceElevated,
-    surfaceContainerHighest  = Color(0xFF22223A),
-    outline              = Color(0xFF2E2E4A),
-    outlineVariant       = Color(0xFF1E1E32),
-    inverseSurface       = Color(0xFFF0EFFF),
+    surfaceContainerHighest  = Color(0xFF383838),
+    outline              = Color(0xFF424242),
+    outlineVariant       = Color(0xFF2C2C2C),
+    inverseSurface       = Color(0xFFE0E0E0),
     inverseOnSurface     = SurfaceDark,
     inversePrimary       = VioletSoft,
     error                = Color(0xFFF87171),
-    errorContainer       = Color(0xFF3B0000),
+    errorContainer       = Color(0xFF4A0000),
     onError              = Color(0xFFFFFFFF),
-    onErrorContainer     = Color(0xFFFFB3B3),
+    onErrorContainer     = Color(0xFFFFCCCC),
 )
 
 // ─────────────────────────────────────────────────────────────────────────────

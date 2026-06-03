@@ -113,9 +113,9 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
             itemsIndexed(MOODS) { idx, mood ->
                 val selected = selectedMood == idx
                 val chipBg = if (selected)
-                    Brush.linearGradient(mood.colors)
+                    MaterialTheme.colorScheme.primary
                 else
-                    Brush.linearGradient(listOf(SurfaceCard, SurfaceCard))
+                    MaterialTheme.colorScheme.surfaceVariant
 
                 Box(
                     modifier = Modifier
@@ -160,11 +160,6 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                         .padding(horizontal = 16.dp, vertical = 4.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(SurfaceCard)
-                        .border(
-                            1.dp,
-                            Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f))),
-                            RoundedCornerShape(20.dp),
-                        )
                         .clickable(onClick = onShowPlayer),
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -188,7 +183,7 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Box(
                                     Modifier.size(7.dp).clip(CircleShape)
-                                        .background(Brush.radialGradient(listOf(VioletPrimary.copy(dotPulse), PinkAccent.copy(dotPulse * 0.7f))))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = dotPulse))
                                 )
                                 Text("Now Playing", style = MaterialTheme.typography.labelSmall, color = VioletSoft, fontWeight = FontWeight.SemiBold)
                             }
@@ -198,7 +193,7 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                         }
                         Box(
                             modifier = Modifier.size(44.dp).clip(CircleShape)
-                                .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
+                                .background(MaterialTheme.colorScheme.primary)
                                 .clickable { PlayerController.togglePlayPause() },
                             contentAlignment = Alignment.Center,
                         ) {
@@ -300,7 +295,7 @@ private fun QuickPickRow(icon: ImageVector, gradient: List<Color>, title: String
     ) {
         Box(
             modifier = Modifier.size(56.dp).clip(RoundedCornerShape(10.dp))
-                .background(Brush.linearGradient(gradient)),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) { Icon(icon, null, tint = Color.White.copy(0.85f), modifier = Modifier.size(26.dp)) }
         Column(modifier = Modifier.weight(1f)) {
@@ -317,14 +312,12 @@ private fun AlbumCard(bgGradient: List<Color>, accentGradient: List<Color>, titl
         modifier = Modifier
             .size(150.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Brush.linearGradient(bgGradient))
-            .border(1.dp, Brush.linearGradient(accentGradient.map { it.copy(0.25f) }), RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable {},
     ) {
         Box(
             modifier = Modifier.size(70.dp).align(Alignment.TopEnd)
                 .clip(CircleShape)
-                .background(Brush.radialGradient(accentGradient.map { it.copy(0.3f) }))
         )
         Column(
             modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
@@ -335,7 +328,7 @@ private fun AlbumCard(bgGradient: List<Color>, accentGradient: List<Color>, titl
         Box(
             modifier = Modifier.size(34.dp).align(Alignment.BottomEnd).padding(end = 10.dp, bottom = 10.dp)
                 .clip(CircleShape)
-                .background(Brush.linearGradient(accentGradient.map { it.copy(0.7f) })),
+                .background(MaterialTheme.colorScheme.primary),
             contentAlignment = Alignment.Center,
         ) { Icon(Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(18.dp)) }
     }
@@ -349,8 +342,8 @@ private fun ArtistChip(name: String, gradient: List<Color>) {
     ) {
         Box(
             modifier = Modifier.size(72.dp).clip(CircleShape)
-                .background(Brush.linearGradient(gradient.map { it.copy(0.25f) }))
-                .border(2.dp, Brush.linearGradient(gradient.map { it.copy(0.5f) }), CircleShape),
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(2.dp, MaterialTheme.colorScheme.outline, CircleShape),
             contentAlignment = Alignment.Center,
         ) { Icon(Icons.Rounded.Person, null, tint = Color.White.copy(0.7f), modifier = Modifier.size(32.dp)) }
         Spacer(Modifier.height(6.dp))
