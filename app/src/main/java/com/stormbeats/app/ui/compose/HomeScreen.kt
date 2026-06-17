@@ -3,6 +3,8 @@ package com.stormbeats.app.ui.compose
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -15,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,6 +33,7 @@ import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 import com.stormbeats.app.util.UpdateManager
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 private data class MoodData(val label: String, val icon: ImageVector, val colors: List<Color>)
 
@@ -45,12 +49,23 @@ private val MOODS = listOf(
 private data class AlbumCardData(val bg: List<Color>, val accent: List<Color>, val title: String, val subtitle: String)
 
 private val ALBUM_CARDS = listOf(
-    AlbumCardData(listOf(Color(0xFF1A0A3A), Color(0xFF3D1A7A)), listOf(VioletPrimary, VioletSoft),        "Deep Focus",  "Instrumental"),
-    AlbumCardData(listOf(Color(0xFF0A1A2A), Color(0xFF0D3060)), listOf(CyanAccent, Color(0xFF0EA5E9)),    "Late Night",  "R&B Vibes"),
-    AlbumCardData(listOf(Color(0xFF2A0A1A), Color(0xFF60103A)), listOf(PinkAccent, PinkSoft),             "Bharat Hits", "Bollywood"),
-    AlbumCardData(listOf(Color(0xFF0A0A2A), Color(0xFF1A1060)), listOf(Color(0xFF6366F1), Color(0xFF818CF8)), "Old School", "90s Classics"),
-    AlbumCardData(listOf(Color(0xFF1A0A0A), Color(0xFF4A1508)), listOf(Color(0xFFFF6B6B), Color(0xFFFF8E53)), "Party Mix",  "Dance & EDM"),
+    AlbumCardData(listOf(Color(0xFF0E0428), Color(0xFF2D1566)), listOf(VioletPrimary, VioletSoft),        "Deep Focus",  "Instrumental"),
+    AlbumCardData(listOf(Color(0xFF040E1C), Color(0xFF0B2850)), listOf(CyanAccent, Color(0xFF0EA5E9)),    "Late Night",  "R&B Vibes"),
+    AlbumCardData(listOf(Color(0xFF1C040E), Color(0xFF500824)), listOf(PinkAccent, PinkSoft),             "Bharat Hits", "Bollywood"),
+    AlbumCardData(listOf(Color(0xFF060620), Color(0xFF12084A)), listOf(Color(0xFF6366F1), Color(0xFF818CF8)), "Old School", "90s Classics"),
+    AlbumCardData(listOf(Color(0xFF140604), Color(0xFF3A1006)), listOf(Color(0xFFFF6B6B), Color(0xFFFF8E53)), "Party Mix",  "Dance & EDM"),
 )
+
+private fun getGreeting(): String {
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return when {
+        hour < 5  -> "Night Owl ⚡"
+        hour < 12 -> "Good Morning ☀️"
+        hour < 17 -> "Good Afternoon 🎵"
+        hour < 21 -> "Good Evening 🌙"
+        else      -> "Late Night 🎧"
+    }
+}
 
 @Composable
 fun HomeScreen(onShowPlayer: () -> Unit) {
@@ -75,14 +90,14 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
             containerColor = SurfaceCard,
             icon = { Icon(Icons.Rounded.SystemUpdate, null, tint = VioletSoft) },
             title = { Text("Update Available", color = Color.White, fontWeight = FontWeight.Bold) },
-            text  = { Text("Version ${updateResult!!.release.tagName} is ready.\n\n${updateResult!!.release.body}", color = Color(0xFF8888BB), style = MaterialTheme.typography.bodyMedium) },
+            text  = { Text("Version ${updateResult!!.release.tagName} is ready.\n\n${updateResult!!.release.body}", color = Color(0xFF8080BB), style = MaterialTheme.typography.bodyMedium) },
             confirmButton = {
                 Button(
                     onClick = { UpdateManager.downloadAndInstall(context, updateResult!!.downloadUrl, updateResult!!.release.tagName); showUpdate = false },
                     colors  = ButtonDefaults.buttonColors(containerColor = VioletPrimary),
                 ) { Text("Update Now", fontWeight = FontWeight.Bold) }
             },
-            dismissButton = { TextButton(onClick = { showUpdate = false }) { Text("Later", color = Color(0xFF7777AA)) } },
+            dismissButton = { TextButton(onClick = { showUpdate = false }) { Text("Later", color = Color(0xFF6666A0)) } },
         )
     }
 
@@ -93,18 +108,27 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
             .statusBarsPadding()
             .verticalScroll(rememberScrollState()),
     ) {
-        // ── Top bar ────────────────────────────────────────────────────────────
+        // ── Top bar with gradient greeting ──────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Home", style = MaterialTheme.typography.headlineMedium, color = Color.White, modifier = Modifier.weight(1f))
-            IconButton(onClick = {}) { Icon(Icons.Rounded.History, null, tint = Color.White) }
-            IconButton(onClick = {}) { Icon(Icons.Rounded.TrendingUp, null, tint = Color.White) }
-            IconButton(onClick = {}) { Icon(Icons.Rounded.AccountCircle, null, tint = Color.White) }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    getGreeting(),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    brush = Brush.horizontalGradient(listOf(Color.White, VioletSoft, PinkSoft)),
+                )
+            }
+            GlassIconBtn(Icons.Rounded.History) {}
+            Spacer(Modifier.width(4.dp))
+            GlassIconBtn(Icons.Rounded.TrendingUp) {}
+            Spacer(Modifier.width(4.dp))
+            GlassIconBtn(Icons.Rounded.AccountCircle) {}
         }
 
-        // ── Mood chips ─────────────────────────────────────────────────────────
+        // ── Mood chips ─────────────────────────────────────────────────────
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -112,19 +136,28 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
         ) {
             itemsIndexed(MOODS) { idx, mood ->
                 val selected = selectedMood == idx
+                val animatedScale by animateFloatAsState(
+                    targetValue = if (selected) 1.05f else 1f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                    label = "moodScale",
+                )
                 val chipBg = if (selected)
                     Brush.linearGradient(mood.colors)
                 else
-                    Brush.linearGradient(listOf(SurfaceCard, SurfaceCard))
+                    Brush.linearGradient(listOf(SurfaceGlass, SurfaceGlass))
 
                 Box(
                     modifier = Modifier
                         .height(40.dp)
+                        .scale(animatedScale)
                         .clip(CircleShape)
                         .background(chipBg)
                         .border(
                             width = 1.dp,
-                            color = if (selected) Color.Transparent else Color(0xFF2E2E4A),
+                            brush = if (selected)
+                                Brush.linearGradient(mood.colors.map { it.copy(0.6f) })
+                            else
+                                Brush.linearGradient(listOf(GlassBorderLight, GlassBorderDark)),
                             shape = CircleShape,
                         )
                         .clickable { selectedMood = if (selected) -1 else idx }
@@ -135,11 +168,11 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Icon(mood.icon, null, modifier = Modifier.size(16.dp), tint = if (selected) Color.White else Color(0xFF7777AA))
+                        Icon(mood.icon, null, modifier = Modifier.size(16.dp), tint = if (selected) Color.White else Color(0xFF6666A0))
                         Text(
                             mood.label,
                             style = MaterialTheme.typography.labelLarge,
-                            color = if (selected) Color.White else Color(0xFF9999BB),
+                            color = if (selected) Color.White else Color(0xFF8888AA),
                             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                         )
                     }
@@ -147,7 +180,7 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
             }
         }
 
-        // ── Now playing hero card (when song is playing) ───────────────────────
+        // ── Now playing hero card ──────────────────────────────────────────
         AnimatedVisibility(
             visible = currentSong != null,
             enter = fadeIn(tween(400)) + expandVertically(tween(400)),
@@ -158,18 +191,22 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 4.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(SurfaceCard)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(SurfaceGlass.copy(alpha = 0.85f))
                         .border(
                             1.dp,
-                            Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f))),
-                            RoundedCornerShape(20.dp),
+                            Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.4f), CyanAccent.copy(0.2f))),
+                            RoundedCornerShape(22.dp),
                         )
                         .clickable(onClick = onShowPlayer),
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(
-                            modifier = Modifier.size(60.dp).clip(RoundedCornerShape(12.dp)).background(SurfaceElevated),
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(SurfaceElevated)
+                                .border(1.dp, Brush.linearGradient(listOf(VioletPrimary.copy(0.4f), PinkAccent.copy(0.3f))), RoundedCornerShape(14.dp)),
                             contentAlignment = Alignment.Center,
                         ) {
                             val url = song.getImageUrl()
@@ -194,10 +231,19 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
                             }
                             Spacer(Modifier.height(4.dp))
                             Text(song.name, style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF7777AA), maxLines = 1)
+                            Text(song.getPrimaryArtist(), style = MaterialTheme.typography.bodySmall, color = Color(0xFF6666A0), maxLines = 1)
                         }
+                        // Pulsing play button
+                        val playPulse by rememberInfiniteTransition(label = "pp").animateFloat(
+                            1f, 1.08f,
+                            infiniteRepeatable(tween(1000), RepeatMode.Reverse),
+                            label = "ppScale",
+                        )
                         Box(
-                            modifier = Modifier.size(44.dp).clip(CircleShape)
+                            modifier = Modifier
+                                .size(48.dp)
+                                .scale(if (isPlaying) playPulse else 1f)
+                                .clip(CircleShape)
                                 .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
                                 .clickable { PlayerController.togglePlayPause() },
                             contentAlignment = Alignment.Center,
@@ -211,24 +257,41 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        // ── Quick picks ────────────────────────────────────────────────────────
+        // ── Quick picks — 2-column glass grid ───────────────────────────────
         SectionHeader("Quick picks", action = "Play all")
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(10.dp))
 
         data class QuickItem(val icon: ImageVector, val bg: List<Color>, val title: String, val subtitle: String)
-        listOf(
-            QuickItem(Icons.Rounded.Search,     listOf(Color(0xFF1A1A3A), SurfaceElevated), "Discover music",    "Search JioSaavn"),
-            QuickItem(Icons.Rounded.AudioFile,  listOf(Color(0xFF0D2010), Color(0xFF0A3018)), "320kbps HiFi Audio", "Lossless quality"),
-            QuickItem(Icons.Rounded.Bolt,       listOf(Color(0xFF2A1A00), Color(0xFF4A2E00)), "StormBeats",       "Your music player"),
-            QuickItem(Icons.Rounded.QueueMusic, listOf(Color(0xFF1A0A2A), Color(0xFF2D1566)), "Queue songs",      "Tap a song to play"),
-        ).forEach { item ->
-            QuickPickRow(icon = item.icon, gradient = item.bg, title = item.title, subtitle = item.subtitle)
+        val quickItems = listOf(
+            QuickItem(Icons.Rounded.Search,     listOf(Color(0xFF12122C), SurfaceElevated), "Discover music",    "Search JioSaavn"),
+            QuickItem(Icons.Rounded.AudioFile,  listOf(Color(0xFF081808), Color(0xFF0A2A10)), "320kbps HiFi Audio", "Lossless quality"),
+            QuickItem(Icons.Rounded.Bolt,       listOf(Color(0xFF1C1200), Color(0xFF382200)), "StormBeats",       "Your music player"),
+            QuickItem(Icons.Rounded.QueueMusic, listOf(Color(0xFF100620), Color(0xFF201050)), "Queue songs",      "Tap a song to play"),
+        )
+
+        // 2-column grid
+        Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            for (row in quickItems.chunked(2)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    row.forEach { item ->
+                        QuickPickCard(
+                            icon = item.icon,
+                            gradient = item.bg,
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    // Fill remaining space if odd count
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
+                }
+            }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(28.dp))
 
-        // ── Keep listening / Album cards ───────────────────────────────────────
+        // ── Featured — larger album cards ──────────────────────────────────
         SectionHeader("Featured", action = null)
 
         Spacer(Modifier.height(12.dp))
@@ -243,9 +306,9 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(28.dp))
 
-        // ── Artists row ────────────────────────────────────────────────────────
+        // ── Popular Artists — larger with animated rings ─────────────────
         SectionHeader("Popular Artists", action = null)
 
         Spacer(Modifier.height(12.dp))
@@ -261,7 +324,7 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
 
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(bottom = 8.dp),
         ) {
             itemsIndexed(artists) { _, (name, colors) ->
@@ -274,68 +337,135 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
 }
 
 @Composable
+private fun GlassIconBtn(icon: ImageVector, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(SurfaceGlass.copy(alpha = 0.7f))
+            .border(0.5.dp, GlassBorderLight.copy(0.4f), CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { Icon(icon, null, tint = Color.White, modifier = Modifier.size(20.dp)) }
+}
+
+@Composable
 private fun SectionHeader(title: String, action: String?) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, color = VioletSoft, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+        // Gradient accent line
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .height(22.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Brush.verticalGradient(listOf(VioletPrimary, PinkAccent)))
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(title, style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
         if (action != null) {
             TextButton(onClick = {}) {
-                Text(action, color = Color(0xFF9999BB), style = MaterialTheme.typography.labelLarge)
+                Text(action, color = Color(0xFF8888AA), style = MaterialTheme.typography.labelLarge)
             }
         }
     }
 }
 
 @Composable
-private fun QuickPickRow(icon: ImageVector, gradient: List<Color>, title: String, subtitle: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {}
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+private fun QuickPickCard(icon: ImageVector, gradient: List<Color>, title: String, subtitle: String, modifier: Modifier = Modifier) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "qpScale",
+    )
+    Box(
+        modifier = modifier
+            .height(80.dp)
+            .scale(scale)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Brush.linearGradient(gradient))
+            .border(1.dp, Brush.linearGradient(listOf(GlassBorderLight.copy(0.4f), GlassBorderDark.copy(0.2f))), RoundedCornerShape(16.dp))
+            .clickable(interactionSource = interactionSource, indication = null) {},
     ) {
+        // Subtle orb accent
         Box(
-            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(10.dp))
-                .background(Brush.linearGradient(gradient)),
-            contentAlignment = Alignment.Center,
-        ) { Icon(icon, null, tint = Color.White.copy(0.85f), modifier = Modifier.size(26.dp)) }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title,    style = MaterialTheme.typography.titleSmall, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall,  color = Color(0xFF5555AA), maxLines = 1)
+            modifier = Modifier
+                .size(50.dp)
+                .align(Alignment.TopEnd)
+                .offset(x = 15.dp, y = (-15).dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.03f))
+        )
+        Row(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.White.copy(alpha = 0.06f)),
+                contentAlignment = Alignment.Center,
+            ) { Icon(icon, null, tint = Color.White.copy(0.8f), modifier = Modifier.size(20.dp)) }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.labelLarge, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(subtitle, style = MaterialTheme.typography.labelSmall, color = Color(0xFF5050A0), maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 10.sp)
+            }
         }
-        Icon(Icons.Rounded.MoreVert, null, tint = Color(0xFF3E3E5E), modifier = Modifier.size(18.dp))
     }
 }
 
 @Composable
 private fun AlbumCard(bgGradient: List<Color>, accentGradient: List<Color>, title: String, subtitle: String) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "albumScale",
+    )
     Box(
         modifier = Modifier
-            .size(150.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .size(170.dp)
+            .scale(scale)
+            .clip(RoundedCornerShape(18.dp))
             .background(Brush.linearGradient(bgGradient))
-            .border(1.dp, Brush.linearGradient(accentGradient.map { it.copy(0.25f) }), RoundedCornerShape(16.dp))
-            .clickable {},
+            .border(1.dp, Brush.linearGradient(accentGradient.map { it.copy(0.2f) }), RoundedCornerShape(18.dp))
+            .clickable(interactionSource = interactionSource, indication = null) {},
     ) {
         Box(
-            modifier = Modifier.size(70.dp).align(Alignment.TopEnd)
+            modifier = Modifier.size(80.dp).align(Alignment.TopEnd)
+                .offset(x = 10.dp, y = (-10).dp)
                 .clip(CircleShape)
-                .background(Brush.radialGradient(accentGradient.map { it.copy(0.3f) }))
+                .background(Brush.radialGradient(accentGradient.map { it.copy(0.2f) }))
+        )
+        // Gradient overlay at bottom for text readability
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .align(Alignment.BottomCenter)
+                .background(Brush.verticalGradient(listOf(Color.Transparent, bgGradient.last().copy(0.9f))))
         )
         Column(
-            modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
+            modifier = Modifier.align(Alignment.BottomStart).padding(14.dp),
         ) {
             Text(title,    style = MaterialTheme.typography.titleSmall, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1)
             Text(subtitle, style = MaterialTheme.typography.labelSmall, color = Color(0xFF8888AA), maxLines = 1)
         }
         Box(
-            modifier = Modifier.size(34.dp).align(Alignment.BottomEnd).padding(end = 10.dp, bottom = 10.dp)
+            modifier = Modifier
+                .size(36.dp)
+                .align(Alignment.BottomEnd)
+                .offset(x = (-10).dp, y = (-10).dp)
                 .clip(CircleShape)
-                .background(Brush.linearGradient(accentGradient.map { it.copy(0.7f) })),
+                .background(Brush.linearGradient(accentGradient.map { it.copy(0.7f) }))
+                .border(1.dp, accentGradient.first().copy(0.3f), CircleShape),
             contentAlignment = Alignment.Center,
         ) { Icon(Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(18.dp)) }
     }
@@ -343,17 +473,51 @@ private fun AlbumCard(bgGradient: List<Color>, accentGradient: List<Color>, titl
 
 @Composable
 private fun ArtistChip(name: String, gradient: List<Color>) {
+    val infiniteTransition = rememberInfiniteTransition(label = "artistRing")
+    val ringRotation by infiniteTransition.animateFloat(
+        0f, 360f,
+        infiniteRepeatable(tween(8000, easing = LinearEasing)),
+        label = "artistRingRot",
+    )
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(80.dp).clickable {},
+        modifier = Modifier.width(90.dp).clickable {},
     ) {
-        Box(
-            modifier = Modifier.size(72.dp).clip(CircleShape)
-                .background(Brush.linearGradient(gradient.map { it.copy(0.25f) }))
-                .border(2.dp, Brush.linearGradient(gradient.map { it.copy(0.5f) }), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.Person, null, tint = Color.White.copy(0.7f), modifier = Modifier.size(32.dp)) }
-        Spacer(Modifier.height(6.dp))
-        Text(name, style = MaterialTheme.typography.labelSmall, fontSize = 10.sp, color = Color(0xFF9999BB), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Box(contentAlignment = Alignment.Center) {
+            // Animated gradient ring
+            Box(
+                modifier = Modifier
+                    .size(86.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.sweepGradient(
+                            listOf(
+                                gradient.first().copy(0.4f),
+                                gradient.last().copy(0.6f),
+                                Color.Transparent,
+                                gradient.first().copy(0.4f),
+                            )
+                        )
+                    )
+                    .padding(2.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(SurfaceDark)
+                    .padding(3.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .size(74.dp)
+                    .clip(CircleShape)
+                    .background(Brush.linearGradient(gradient.map { it.copy(0.2f) })),
+                contentAlignment = Alignment.Center,
+            ) { Icon(Icons.Rounded.Person, null, tint = Color.White.copy(0.7f), modifier = Modifier.size(34.dp)) }
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(name, style = MaterialTheme.typography.labelSmall, fontSize = 11.sp, color = Color(0xFF9999BB), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
     }
 }

@@ -26,18 +26,18 @@ val PoppinsFamily = FontFamily(
 )
 
 val StormBeatsTypography = Typography(
-    displayLarge   = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 57.sp, lineHeight = 64.sp),
-    displayMedium  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 45.sp, lineHeight = 52.sp),
-    displaySmall   = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 36.sp, lineHeight = 44.sp),
-    headlineLarge  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 32.sp, lineHeight = 40.sp),
-    headlineMedium = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, lineHeight = 36.sp),
-    headlineSmall  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 32.sp),
-    titleLarge     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp),
+    displayLarge   = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.5).sp),
+    displayMedium  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 45.sp, lineHeight = 52.sp, letterSpacing = (-0.3).sp),
+    displaySmall   = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Bold,     fontSize = 36.sp, lineHeight = 44.sp, letterSpacing = (-0.2).sp),
+    headlineLarge  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 32.sp, lineHeight = 40.sp, letterSpacing = (-0.3).sp),
+    headlineMedium = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, lineHeight = 36.sp, letterSpacing = (-0.2).sp),
+    headlineSmall  = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 32.sp, letterSpacing = (-0.15).sp),
+    titleLarge     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = (-0.1).sp),
     titleMedium    = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 16.sp, lineHeight = 24.sp),
     titleSmall     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 14.sp, lineHeight = 20.sp),
     bodyLarge      = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 16.sp, lineHeight = 24.sp),
     bodyMedium     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 14.sp, lineHeight = 20.sp),
-    bodySmall      = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 12.sp, lineHeight = 16.sp),
+    bodySmall      = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Normal,   fontSize = 13.sp, lineHeight = 18.sp),
     labelLarge     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 14.sp, lineHeight = 20.sp),
     labelMedium    = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 12.sp, lineHeight = 16.sp),
     labelSmall     = TextStyle(fontFamily = PoppinsFamily, fontWeight = FontWeight.Medium,   fontSize = 11.sp, lineHeight = 16.sp),
@@ -52,20 +52,26 @@ val StormBeatsShapes = Shapes(
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Colour palette — Premium dark violet/pink
+// Colour palette — Midnight Aurora
 // ─────────────────────────────────────────────────────────────────────────────
 
-val VioletPrimary   = Color(0xFF7C3AED)
-val PinkAccent      = Color(0xFFEC4899)
-val CyanAccent      = Color(0xFF06B6D4)
+val VioletPrimary   = Color(0xFF6D28D9)
+val PinkAccent      = Color(0xFFDB2777)
+val CyanAccent      = Color(0xFF22D3EE)
+val GoldAccent      = Color(0xFFF59E0B)
 val VioletSoft      = Color(0xFF8B5CF6)
 val PinkSoft        = Color(0xFFF472B6)
-val GradientStart   = Color(0xFF7C3AED)
-val GradientEnd     = Color(0xFFEC4899)
-val SurfaceDark     = Color(0xFF0D0D14)
-val SurfaceCard     = Color(0xFF13131E)
-val SurfaceElevated = Color(0xFF1A1A2E)
+val GradientStart   = Color(0xFF6D28D9)
+val GradientEnd     = Color(0xFFDB2777)
+val SurfaceDark     = Color(0xFF06060E)
+val SurfaceCard     = Color(0xFF0E0E1A)
+val SurfaceElevated = Color(0xFF161626)
+val SurfaceGlass    = Color(0xFF0A0A16)
 val OnAccent        = Color(0xFFFFFFFF)
+
+// Subtle tint variants for glass-morphism borders
+val GlassBorderLight = Color(0xFF2A2A48)
+val GlassBorderDark  = Color(0xFF16162A)
 
 private val DarkColorScheme = darkColorScheme(
     primary              = VioletPrimary,
@@ -88,9 +94,9 @@ private val DarkColorScheme = darkColorScheme(
     onSurfaceVariant     = Color(0xFFB0B0C8),
     surfaceContainer         = SurfaceCard,
     surfaceContainerHigh     = SurfaceElevated,
-    surfaceContainerHighest  = Color(0xFF22223A),
-    outline              = Color(0xFF2E2E4A),
-    outlineVariant       = Color(0xFF1E1E32),
+    surfaceContainerHighest  = Color(0xFF1E1E34),
+    outline              = GlassBorderLight,
+    outlineVariant       = GlassBorderDark,
     inverseSurface       = Color(0xFFF0EFFF),
     inverseOnSurface     = SurfaceDark,
     inversePrimary       = VioletSoft,
