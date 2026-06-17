@@ -126,14 +126,15 @@ fun SongItem(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                song.name,
-                style = MaterialTheme.typography.titleSmall,
+                text = song.name,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    brush = if (isPlaying) Brush.horizontalGradient(listOf(VioletSoft, PinkSoft)) else null
+                ),
                 fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.Medium,
-                color = if (isPlaying) Color.White else Color.White,
+                color = if (isPlaying) Color.Unspecified else Color.White,
                 fontSize = 15.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                brush = if (isPlaying) Brush.horizontalGradient(listOf(VioletSoft, PinkSoft)) else null,
             )
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

@@ -154,9 +154,10 @@ fun SearchScreen(
                     .padding(horizontal = 10.dp, vertical = 4.dp),
             ) {
                 Text(
-                    "${songs.size} results",
-                    style = MaterialTheme.typography.labelSmall,
-                    brush = Brush.horizontalGradient(listOf(VioletSoft, PinkSoft)),
+                    text = "${songs.size} results",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        brush = Brush.horizontalGradient(listOf(VioletSoft, PinkSoft))
+                    ),
                     fontWeight = FontWeight.SemiBold,
                 )
             }

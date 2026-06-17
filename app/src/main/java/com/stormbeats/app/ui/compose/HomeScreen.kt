@@ -115,10 +115,11 @@ fun HomeScreen(onShowPlayer: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    getGreeting(),
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = getGreeting(),
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        brush = Brush.horizontalGradient(listOf(Color.White, VioletSoft, PinkSoft))
+                    ),
                     fontWeight = FontWeight.Bold,
-                    brush = Brush.horizontalGradient(listOf(Color.White, VioletSoft, PinkSoft)),
                 )
             }
             GlassIconBtn(Icons.Rounded.History) {}
