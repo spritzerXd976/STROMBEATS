@@ -1,3 +1,4 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.stormbeats.app.ui.compose
 
 import androidx.compose.animation.core.*
@@ -37,9 +38,7 @@ import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 import kotlinx.coroutines.delay
 import kotlin.OptIn
-import androidx.compose.material3.ExperimentalMaterial3Api
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerSheet(
     song: Song,
