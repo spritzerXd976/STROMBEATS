@@ -65,167 +65,156 @@ fun MiniPlayerBar(
 
     // Border colors shift when playing
     val borderColors = if (isPlaying) {
-        val c1 = if (borderShift < 0.5f) VioletPrimary.copy(0.5f) else PinkAccent.copy(0.5f)
-        val c2 = if (borderShift < 0.5f) PinkAccent.copy(0.4f) else CyanAccent.copy(0.3f)
+        val c1 = if (borderShift < 0.5f) MaterialTheme.colorScheme.primary.copy(0.5f) else MaterialTheme.colorScheme.secondary.copy(0.5f)
+        val c2 = if (borderShift < 0.5f) MaterialTheme.colorScheme.secondary.copy(0.4f) else MaterialTheme.colorScheme.tertiary.copy(0.3f)
         listOf(c1, c2)
     } else {
-        listOf(GlassBorderLight, GlassBorderDark)
+        listOf(MaterialTheme.colorScheme.outlineVariant, MaterialTheme.colorScheme.outlineVariant)
     }
 
-    Box(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(SurfaceGlass.copy(alpha = 0.9f))
-            .border(1.dp, Brush.linearGradient(borderColors), RoundedCornerShape(22.dp))
-            .clickable(onClick = onExpandClick),
+            .border(1.dp, Brush.linearGradient(borderColors), RoundedCornerShape(22.dp)),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(22.dp),
+        onClick = onExpandClick,
+        shadowElevation = 4.dp
     ) {
-        // Progress at the TOP — thin gradient line
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(progress)
-                .height(2.dp)
-                .align(Alignment.TopStart)
-                .background(Brush.horizontalGradient(listOf(VioletPrimary, PinkAccent)))
-        )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // Progress at the TOP — thin gradient line
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(progress)
+                    .height(2.dp)
+                    .align(Alignment.TopStart)
+                    .background(Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)))
+            )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Album art with equalizer bars overlay
-            Box(modifier = Modifier.size(52.dp), contentAlignment = Alignment.Center) {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .border(
-                            1.dp,
-                            Brush.linearGradient(
-                                if (isPlaying) listOf(VioletPrimary.copy(0.6f), PinkAccent.copy(0.5f))
-                                else listOf(GlassBorderLight, GlassBorderLight)
-                            ),
-                            RoundedCornerShape(14.dp),
-                        ),
-                ) {
-                    val imageUrl = song.getImageUrl()
-                    if (imageUrl.isNotEmpty()) {
-                        AsyncImage(model = imageUrl, contentDescription = song.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                    } else {
-                        Box(
-                            Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFF120828), Color(0xFF2D1566)))),
-                            contentAlignment = Alignment.Center,
-                        ) { Icon(Icons.Rounded.MusicNote, null, tint = VioletSoft, modifier = Modifier.size(22.dp)) }
-                    }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Album art with equalizer bars overlay
+                Box(modifier = Modifier.size(52.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                    ) {
+                        val imageUrl = song.getImageUrl()
+                        if (imageUrl.isNotEmpty()) {
+                            AsyncImage(model = imageUrl, contentDescription = song.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                        } else {
+                            Box(
+                                Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) { Icon(Icons.Rounded.MusicNote, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp)) }
+                        }
 
-                    // Equalizer bars overlay when playing
-                    if (isPlaying) {
-                        Box(
-                            modifier = Modifier.fillMaxSize().background(SurfaceDark.copy(alpha = 0.5f)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                verticalAlignment = Alignment.Bottom,
-                                modifier = Modifier.height(20.dp),
+                        // Equalizer bars overlay when playing
+                        if (isPlaying) {
+                            Box(
+                                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center,
                             ) {
-                                val bars = listOf(bar1, bar2, bar3, bar4)
-                                bars.forEach { h ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(3.dp)
-                                            .fillMaxHeight(h)
-                                            .clip(RoundedCornerShape(1.5.dp))
-                                            .background(
-                                                Brush.verticalGradient(listOf(PinkAccent, VioletPrimary))
-                                            )
-                                    )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    verticalAlignment = Alignment.Bottom,
+                                    modifier = Modifier.height(20.dp),
+                                ) {
+                                    val bars = listOf(bar1, bar2, bar3, bar4)
+                                    bars.forEach { h ->
+                                        Box(
+                                            modifier = Modifier
+                                                .width(3.dp)
+                                                .fillMaxHeight(h)
+                                                .clip(RoundedCornerShape(1.5.dp))
+                                                .background(
+                                                    Brush.verticalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.primary))
+                                                )
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        song.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        song.getPrimaryArtist(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                Spacer(Modifier.width(6.dp))
+
+                // Controls
+                FilledTonalIconButton(
+                    onClick = { PlayerController.playPrevious() },
+                    modifier = Modifier.size(34.dp)
+                ) {
+                    Icon(Icons.Rounded.SkipPrevious, null, modifier = Modifier.size(18.dp))
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                // Play button with press scale
+                val playInteraction = remember { MutableInteractionSource() }
+                val playPressed by playInteraction.collectIsPressedAsState()
+                val playScale by animateFloatAsState(
+                    targetValue = if (playPressed) 0.88f else 1f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                    label = "miniPlayScale",
+                )
+                FilledIconButton(
+                    onClick = { PlayerController.togglePlayPause() },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .scale(playScale),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, modifier = Modifier.size(24.dp))
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                FilledTonalIconButton(
+                    onClick = { PlayerController.playNext() },
+                    modifier = Modifier.size(34.dp)
+                ) {
+                    Icon(Icons.Rounded.SkipNext, null, modifier = Modifier.size(18.dp))
+                }
             }
 
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    song.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    song.getPrimaryArtist(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF6666A0),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            Spacer(Modifier.width(6.dp))
-
-            // Controls
-            Box(
+            // Expand hint chevron at bottom center
+            Icon(
+                Icons.Rounded.KeyboardArrowUp,
+                contentDescription = "Expand",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.5f),
                 modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(SurfaceElevated)
-                    .border(0.5.dp, GlassBorderLight.copy(0.3f), CircleShape)
-                    .clickable { PlayerController.playPrevious() },
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Rounded.SkipPrevious, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(18.dp)) }
-
-            Spacer(Modifier.width(8.dp))
-
-            // Play button with press scale
-            val playInteraction = remember { MutableInteractionSource() }
-            val playPressed by playInteraction.collectIsPressedAsState()
-            val playScale by animateFloatAsState(
-                targetValue = if (playPressed) 0.88f else 1f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                label = "miniPlayScale",
+                    .size(16.dp)
+                    .align(Alignment.BottomCenter)
+                    .offset(y = (-2).dp),
             )
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .scale(playScale)
-                    .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
-                    .border(1.dp, Brush.linearGradient(listOf(VioletSoft.copy(0.3f), PinkSoft.copy(0.3f))), CircleShape)
-                    .clickable(interactionSource = playInteraction, indication = null) { PlayerController.togglePlayPause() },
-                contentAlignment = Alignment.Center,
-            ) { Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp)) }
-
-            Spacer(Modifier.width(8.dp))
-
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(SurfaceElevated)
-                    .border(0.5.dp, GlassBorderLight.copy(0.3f), CircleShape)
-                    .clickable { PlayerController.playNext() },
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Rounded.SkipNext, null, tint = Color(0xFFCCCCDD), modifier = Modifier.size(18.dp)) }
         }
-
-        // Expand hint chevron at bottom center
-        Icon(
-            Icons.Rounded.KeyboardArrowUp,
-            contentDescription = "Expand",
-            tint = Color(0xFF3E3E60),
-            modifier = Modifier
-                .size(16.dp)
-                .align(Alignment.BottomCenter)
-                .offset(y = (-2).dp),
-        )
     }
 }

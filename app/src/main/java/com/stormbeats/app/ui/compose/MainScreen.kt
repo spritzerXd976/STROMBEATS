@@ -3,10 +3,8 @@ package com.stormbeats.app.ui.compose
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
@@ -19,11 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 
@@ -47,7 +43,7 @@ fun MainScreen() {
     val isPlaying   by PlayerController.isPlaying.collectAsState()
 
     Scaffold(
-        containerColor = SurfaceDark,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Column {
                 // Mini player — slides up when song plays
@@ -61,62 +57,38 @@ fun MainScreen() {
                     }
                 }
 
-                // Navigation bar with gradient top border
-                Box(
-                    modifier = Modifier.fillMaxWidth().background(SurfaceDark)
-                        .border(
-                            width = 1.dp,
-                            brush = Brush.horizontalGradient(listOf(Color.Transparent, Color(0xFF2E2E4A), Color.Transparent)),
-                            shape = RoundedCornerShape(0.dp),
-                        ),
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    tonalElevation = 3.dp,
+                    windowInsets = NavigationBarDefaults.windowInsets
                 ) {
-                    NavigationBar(
-                        containerColor = Color.Transparent,
-                        tonalElevation = 0.dp,
-                        modifier = Modifier.navigationBarsPadding(),
-                    ) {
-                        navItems.forEachIndexed { index, item ->
-                            val isSelected = selectedTab == index
-                            NavigationBarItem(
-                                selected = isSelected,
-                                onClick  = { selectedTab = index },
-                                icon = {
-                                    Box(
-                                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp))
-                                            .background(
-                                                if (isSelected)
-                                                    Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.15f)))
-                                                else
-                                                    Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
-                                            ),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                                            contentDescription = item.label,
-                                            modifier = Modifier.size(22.dp),
-                                            tint = if (isSelected) VioletSoft else Color(0xFF4A4A6A),
-                                        )
-                                    }
-                                },
-                                label = {
-                                    Text(
-                                        item.label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontSize = 10.sp,
-                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                                        color = if (isSelected) VioletSoft else Color(0xFF4A4A6A),
-                                    )
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor   = VioletSoft,
-                                    selectedTextColor   = VioletSoft,
-                                    unselectedIconColor = Color(0xFF4A4A6A),
-                                    unselectedTextColor = Color(0xFF4A4A6A),
-                                    indicatorColor      = Color.Transparent,
-                                ),
-                            )
-                        }
+                    navItems.forEachIndexed { index, item ->
+                        val isSelected = selectedTab == index
+                        NavigationBarItem(
+                            selected = isSelected,
+                            onClick  = { selectedTab = index },
+                            icon = {
+                                Icon(
+                                    imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                                    contentDescription = item.label,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    item.label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor   = MaterialTheme.colorScheme.onPrimaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedTextColor   = MaterialTheme.colorScheme.onSurface,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                indicatorColor      = MaterialTheme.colorScheme.primaryContainer,
+                            ),
+                        )
                     }
                 }
             }
@@ -152,22 +124,22 @@ fun MainScreen() {
 @Composable
 private fun LibraryScreen() {
     Box(
-        modifier = Modifier.fillMaxSize().background(SurfaceDark).statusBarsPadding(),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding(),
         contentAlignment = Alignment.Center,
     ) {
-        // Ambient glow
+        // Ambient glow using standard theme primary
         Box(
             modifier = Modifier.size(320.dp).offset(y = (-80).dp)
-                .background(VioletPrimary.copy(0.08f), CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(0.08f), CircleShape)
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Box(
                 modifier = Modifier.size(84.dp).clip(CircleShape)
                     .background(Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.15f)))),
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Rounded.LibraryMusic, null, modifier = Modifier.size(42.dp), tint = VioletSoft) }
-            Text("Your Library", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
-            Text("Coming soon", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF6666AA))
+            ) { Icon(Icons.Rounded.LibraryMusic, null, modifier = Modifier.size(42.dp), tint = MaterialTheme.colorScheme.primary) }
+            Text("Your Library", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground)
+            Text("Coming soon", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -1,4 +1,3 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.stormbeats.app.ui.compose
 
 import androidx.compose.animation.core.*
@@ -37,7 +36,6 @@ import com.stormbeats.app.data.model.Song
 import com.stormbeats.app.ui.theme.*
 import com.stormbeats.app.util.PlayerController
 import kotlinx.coroutines.delay
-import kotlin.OptIn
 
 @Composable
 fun PlayerSheet(
@@ -72,7 +70,7 @@ fun PlayerSheet(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SurfaceDark),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         // Base vertical gradient
         Box(
@@ -80,24 +78,24 @@ fun PlayerSheet(
                 .background(
                     Brush.verticalGradient(
                         listOf(
-                            VioletPrimary.copy(alpha = 0.12f),
-                            SurfaceDark,
-                            SurfaceDark,
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.background,
                         )
                     )
                 )
         )
-        // Drifting aurora orb 1 — violet
+        // Drifting aurora orb 1
         Box(
             modifier = Modifier
                 .size(320.dp)
                 .offset(x = orbX1.dp, y = orbY1.dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.radialGradient(listOf(VioletPrimary.copy(alpha = 0.18f), Color.Transparent))
+                    Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f), Color.Transparent))
                 )
         )
-        // Drifting aurora orb 2 — pink
+        // Drifting aurora orb 2
         Box(
             modifier = Modifier
                 .size(260.dp)
@@ -105,10 +103,10 @@ fun PlayerSheet(
                 .offset(x = orbX2.dp, y = orbY2.dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.radialGradient(listOf(PinkAccent.copy(alpha = 0.14f), Color.Transparent))
+                    Brush.radialGradient(listOf(MaterialTheme.colorScheme.secondary.copy(alpha = 0.14f), Color.Transparent))
                 )
         )
-        // Subtle cyan accent — top right
+        // Subtle accent — top right
         Box(
             modifier = Modifier
                 .size(180.dp)
@@ -116,7 +114,7 @@ fun PlayerSheet(
                 .offset(x = 60.dp, y = (-20).dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.radialGradient(listOf(CyanAccent.copy(alpha = 0.06f), Color.Transparent))
+                    Brush.radialGradient(listOf(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.06f), Color.Transparent))
                 )
         )
 
@@ -124,6 +122,7 @@ fun PlayerSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
     var positionMs    by remember { mutableLongStateOf(0L) }
@@ -151,39 +150,27 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
             .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // ── Top Bar — frosted glass ─────────────────────────────────────────
+        // ── Top Bar ─────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(SurfaceGlass.copy(alpha = 0.8f))
-                    .border(1.dp, GlassBorderLight.copy(alpha = 0.4f), CircleShape)
-                    .clickable(onClick = onDismiss),
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Rounded.KeyboardArrowDown, null, tint = Color.White, modifier = Modifier.size(26.dp)) }
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Rounded.KeyboardArrowDown, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(32.dp))
+            }
 
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = Color(0xFF5858A0), letterSpacing = 3.sp, fontSize = 9.sp)
+                Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 3.sp, fontSize = 9.sp)
                 song.album?.name?.takeIf { it.isNotEmpty() }?.let {
-                    Text(it, style = MaterialTheme.typography.labelMedium, color = Color(0xFFCCCCDD), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(SurfaceGlass.copy(alpha = 0.8f))
-                    .border(1.dp, GlassBorderLight.copy(alpha = 0.4f), CircleShape)
-                    .clickable {},
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Rounded.MoreVert, null, tint = Color.White, modifier = Modifier.size(20.dp)) }
+            IconButton(onClick = {}) {
+                Icon(Icons.Rounded.MoreVert, null, tint = MaterialTheme.colorScheme.onSurface)
+            }
         }
 
         Spacer(Modifier.height(12.dp))
@@ -219,13 +206,13 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
             // Layered glow rings when playing
             if (isPlayingState) {
                 val glowColor1 = if (glowHue < 0.5f)
-                    VioletPrimary.copy(glowAlpha)
+                    MaterialTheme.colorScheme.primary.copy(glowAlpha)
                 else
-                    PinkAccent.copy(glowAlpha)
+                    MaterialTheme.colorScheme.secondary.copy(glowAlpha)
                 val glowColor2 = if (glowHue < 0.5f)
-                    PinkAccent.copy(glowAlpha * 0.6f)
+                    MaterialTheme.colorScheme.secondary.copy(glowAlpha * 0.6f)
                 else
-                    CyanAccent.copy(glowAlpha * 0.5f)
+                    MaterialTheme.colorScheme.tertiary.copy(glowAlpha * 0.5f)
                 Box(
                     modifier = Modifier
                         .size((340 * artScale).dp)
@@ -235,24 +222,14 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
                         )
                 )
             }
-            Box(
+            ElevatedCard(
                 modifier = Modifier
                     .size((320 * artScale).dp)
-                    .clip(RoundedCornerShape(30.dp))
-                    .border(
-                        width = if (isPlayingState) 2.dp else 1.dp,
-                        brush = Brush.linearGradient(
-                            if (isPlayingState)
-                                listOf(VioletPrimary.copy(0.8f), PinkAccent.copy(0.7f), CyanAccent.copy(0.4f))
-                            else
-                                listOf(GlassBorderLight, GlassBorderDark)
-                        ),
-                        shape = RoundedCornerShape(30.dp),
-                    )
                     .graphicsLayer {
                         if (isPlayingState) rotationZ = vinylAngle
                     },
-                contentAlignment = Alignment.Center,
+                shape = RoundedCornerShape(30.dp),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = if (isPlayingState) 12.dp else 4.dp),
             ) {
                 val imgUrl = song.getImageUrl()
                 if (imgUrl.isNotEmpty()) {
@@ -265,9 +242,9 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
                 } else {
                     Box(
                         modifier = Modifier.fillMaxSize()
-                            .background(Brush.linearGradient(listOf(Color(0xFF120828), Color(0xFF2D1566)))),
+                            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface))),
                         contentAlignment = Alignment.Center,
-                    ) { Icon(Icons.Rounded.MusicNote, null, modifier = Modifier.size(80.dp), tint = VioletSoft) }
+                    ) { Icon(Icons.Rounded.MusicNote, null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.primary) }
                 }
             }
         }
@@ -284,7 +261,7 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
                     song.name,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -294,7 +271,7 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
                         .width(60.dp)
                         .height(3.dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(Brush.horizontalGradient(listOf(VioletPrimary, PinkAccent, Color.Transparent)))
+                        .background(Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary, Color.Transparent)))
                 )
                 Spacer(Modifier.height(6.dp))
                 Row(
@@ -302,27 +279,26 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     if (song.explicitContent) {
-                        Surface(shape = RoundedCornerShape(4.dp), color = SurfaceElevated) {
-                            Text("E", style = MaterialTheme.typography.labelSmall, color = Color(0xFF6666AA), modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp))
+                        Surface(shape = RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                            Text("E", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp))
                         }
                     }
                     Text(
                         song.getPrimaryArtist(),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF8888BB),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     // Quality badge
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = GoldAccent.copy(alpha = 0.12f),
-                        border = androidx.compose.foundation.BorderStroke(0.5.dp, GoldAccent.copy(0.3f)),
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
                     ) {
                         Text(
                             "HiFi",
                             style = MaterialTheme.typography.labelSmall,
-                            color = GoldAccent,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                             fontSize = 9.sp,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         )
@@ -336,104 +312,43 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
                 animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
                 label = "likeScale",
             )
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .scale(likeScale)
-                    .clip(CircleShape)
-                    .background(
-                        if (isLiked) Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.18f)))
-                        else Brush.linearGradient(listOf(SurfaceGlass, SurfaceGlass))
-                    )
-                    .border(
-                        1.dp,
-                        if (isLiked) Brush.linearGradient(listOf(VioletPrimary.copy(0.5f), PinkAccent.copy(0.5f)))
-                        else Brush.linearGradient(listOf(GlassBorderLight, GlassBorderDark)),
-                        CircleShape,
-                    )
-                    .clickable { isLiked = !isLiked },
-                contentAlignment = Alignment.Center,
+            FilledIconToggleButton(
+                checked = isLiked,
+                onCheckedChange = { isLiked = it },
+                modifier = Modifier.scale(likeScale).size(50.dp),
+                colors = IconButtonDefaults.filledIconToggleButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                )
             ) {
                 Icon(
                     if (isLiked) Icons.Rounded.Favorite else Icons.Outlined.FavoriteBorder,
-                    null,
-                    tint = if (isLiked) PinkAccent else Color(0xFF5858A0),
-                    modifier = Modifier.size(22.dp),
+                    contentDescription = "Like",
+                    tint = if (isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }
 
         Spacer(Modifier.height(28.dp))
 
-        // ── Seekbar — custom rounded track ──────────────────────────────────
+        // ── Seekbar ──────────────────────────────────
         val progress = if (durationMs > 0) positionMs.toFloat() / durationMs.toFloat() else 0f
         Column(modifier = Modifier.padding(horizontal = 28.dp)) {
-            // Custom seekbar canvas
-            val seekHeight = 6.dp
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(seekHeight + 24.dp) // extra touch area
-                    .padding(vertical = 12.dp),
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val trackHeight = seekHeight.toPx()
-                    val y = (size.height - trackHeight) / 2f
-                    // Inactive track
-                    drawRoundRect(
-                        color = Color(0xFF1A1A2E),
-                        topLeft = Offset(0f, y),
-                        size = Size(size.width, trackHeight),
-                        cornerRadius = CornerRadius(trackHeight / 2f),
-                    )
-                    // Active track — gradient
-                    val activeWidth = size.width * progress.coerceIn(0f, 1f)
-                    if (activeWidth > 0f) {
-                        drawRoundRect(
-                            brush = Brush.horizontalGradient(
-                                listOf(VioletPrimary, PinkAccent),
-                                endX = size.width,
-                            ),
-                            topLeft = Offset(0f, y),
-                            size = Size(activeWidth, trackHeight),
-                            cornerRadius = CornerRadius(trackHeight / 2f),
-                        )
-                    }
-                    // Thumb glow
-                    if (activeWidth > 0f) {
-                        drawCircle(
-                            brush = Brush.radialGradient(
-                                listOf(Color.White.copy(0.9f), VioletPrimary.copy(0.3f), Color.Transparent),
-                            ),
-                            radius = trackHeight * 1.8f,
-                            center = Offset(activeWidth, y + trackHeight / 2f),
-                        )
-                        drawCircle(
-                            color = Color.White,
-                            radius = trackHeight * 0.9f,
-                            center = Offset(activeWidth, y + trackHeight / 2f),
-                        )
-                    }
-                }
-                // Invisible slider for interaction
-                Slider(
-                    value = progress,
-                    onValueChange = { v -> isUserSeeking = true; positionMs = (v * durationMs).toLong() },
-                    onValueChangeFinished = { PlayerController.seekTo(positionMs); isUserSeeking = false },
-                    modifier = Modifier.fillMaxWidth().matchParentSize(),
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color.Transparent,
-                        activeTrackColor = Color.Transparent,
-                        inactiveTrackColor = Color.Transparent,
-                        activeTickColor = Color.Transparent,
-                        inactiveTickColor = Color.Transparent,
-                    ),
-                    thumb = {},
-                )
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(fmtTime(positionMs), style = MaterialTheme.typography.labelSmall, color = Color(0xFF5858A0))
-                Text(fmtTime(durationMs), style = MaterialTheme.typography.labelSmall, color = Color(0xFF5858A0))
+            Slider(
+                value = progress,
+                onValueChange = { v -> isUserSeeking = true; positionMs = (v * durationMs).toLong() },
+                onValueChangeFinished = { PlayerController.seekTo(positionMs); isUserSeeking = false },
+                modifier = Modifier.fillMaxWidth(),
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+            )
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(fmtTime(positionMs), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(fmtTime(durationMs), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -445,21 +360,30 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            PressableControlBtn(
-                Icons.Rounded.Shuffle, size = 48, iconSize = 22,
-                onClick = { isShuffleOn = !isShuffleOn },
-                bg = if (isShuffleOn) Brush.linearGradient(listOf(VioletPrimary.copy(0.2f), PinkAccent.copy(0.15f)))
-                     else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
-                tint = if (isShuffleOn) VioletSoft else Color(0xFF3E3E60),
-            )
-            PressableControlBtn(
-                Icons.Rounded.SkipPrevious, size = 60, iconSize = 32,
+            IconToggleButton(
+                checked = isShuffleOn,
+                onCheckedChange = { isShuffleOn = it },
+                modifier = Modifier.size(48.dp),
+                colors = IconButtonDefaults.iconToggleButtonColors(
+                    checkedContentColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Icon(Icons.Rounded.Shuffle, contentDescription = "Shuffle", modifier = Modifier.size(24.dp))
+            }
+
+            FilledTonalIconButton(
                 onClick = { PlayerController.playPrevious() },
-                bg = Brush.linearGradient(listOf(SurfaceGlass, SurfaceGlass)),
-                tint = Color.White,
-                borderBrush = Brush.linearGradient(listOf(GlassBorderLight.copy(0.5f), GlassBorderDark.copy(0.3f))),
-            )
-            // Large play button with double-ring glow
+                modifier = Modifier.size(64.dp),
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Icon(Icons.Rounded.SkipPrevious, contentDescription = "Previous", modifier = Modifier.size(32.dp))
+            }
+
+            // Large play button
             Box(contentAlignment = Alignment.Center) {
                 if (isPlayingState) {
                     val ringAlpha by rememberInfiniteTransition(label = "ring").animateFloat(
@@ -468,8 +392,8 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
                         label = "ringA",
                     )
                     Box(
-                        modifier = Modifier.size(92.dp).clip(CircleShape)
-                            .background(Brush.radialGradient(listOf(VioletPrimary.copy(ringAlpha), Color.Transparent)))
+                        modifier = Modifier.size(100.dp).clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = ringAlpha))
                     )
                 }
                 val playInteraction = remember { MutableInteractionSource() }
@@ -479,47 +403,54 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
                     label = "playScale",
                 )
-                Box(
-                    modifier = Modifier
-                        .size(76.dp)
-                        .scale(playScale)
-                        .clip(CircleShape)
-                        .background(Brush.linearGradient(listOf(VioletPrimary, PinkAccent)))
-                        .border(2.dp, Brush.linearGradient(listOf(VioletSoft.copy(0.5f), PinkSoft.copy(0.4f))), CircleShape)
-                        .clickable(interactionSource = playInteraction, indication = null) { PlayerController.togglePlayPause() },
-                    contentAlignment = Alignment.Center,
-                ) { Icon(if (isPlayingState) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(40.dp)) }
+                FilledIconButton(
+                    onClick = { PlayerController.togglePlayPause() },
+                    modifier = Modifier.size(80.dp).scale(playScale),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    interactionSource = playInteraction
+                ) {
+                    Icon(if (isPlayingState) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, contentDescription = "Play/Pause", modifier = Modifier.size(40.dp))
+                }
             }
-            PressableControlBtn(
-                Icons.Rounded.SkipNext, size = 60, iconSize = 32,
+
+            FilledTonalIconButton(
                 onClick = { PlayerController.playNext() },
-                bg = Brush.linearGradient(listOf(SurfaceGlass, SurfaceGlass)),
-                tint = Color.White,
-                borderBrush = Brush.linearGradient(listOf(GlassBorderLight.copy(0.5f), GlassBorderDark.copy(0.3f))),
-            )
-            PressableControlBtn(
-                icon = if (repeatMode == 2) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat,
-                size = 48, iconSize = 22,
+                modifier = Modifier.size(64.dp),
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Icon(Icons.Rounded.SkipNext, contentDescription = "Next", modifier = Modifier.size(32.dp))
+            }
+
+            IconButton(
                 onClick = { repeatMode = (repeatMode + 1) % 3 },
-                bg = if (repeatMode != 0) Brush.linearGradient(listOf(CyanAccent.copy(0.15f), CyanAccent.copy(0.08f)))
-                     else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
-                tint = if (repeatMode == 0) Color(0xFF3E3E60) else CyanAccent,
-            )
+                modifier = Modifier.size(48.dp),
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = if (repeatMode == 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(if (repeatMode == 2) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat, contentDescription = "Repeat", modifier = Modifier.size(24.dp))
+            }
         }
 
         Spacer(Modifier.height(32.dp))
 
-        // ── Utility row — glass pills ───────────────────────────────────────
+        // ── Utility row ───────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            GlassUtilButton(Icons.Rounded.QueueMusic, "Queue",  VioletSoft)
-            GlassUtilButton(Icons.Rounded.DarkMode,   "Sleep",  Color(0xFF60A5FA))
-            GlassUtilButton(Icons.Rounded.Description,"Lyrics", PinkSoft)
-            GlassUtilButton(Icons.Rounded.Equalizer,  "EQ",     CyanAccent)
-            GlassUtilButton(Icons.Rounded.Share,      "Share",  Color(0xFF8888BB))
+            UtilButton(Icons.Rounded.QueueMusic, "Queue")
+            UtilButton(Icons.Rounded.DarkMode,   "Sleep")
+            UtilButton(Icons.Rounded.Description,"Lyrics")
+            UtilButton(Icons.Rounded.Equalizer,  "EQ")
+            UtilButton(Icons.Rounded.Share,      "Share")
         }
 
         Spacer(Modifier.height(16.dp))
@@ -527,39 +458,7 @@ fun PlayerContent(song: Song, isPlaying: Boolean, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun PressableControlBtn(
-    icon: ImageVector,
-    size: Int,
-    iconSize: Int,
-    onClick: () -> Unit,
-    bg: Brush,
-    tint: Color,
-    borderBrush: Brush? = null,
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.88f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "ctrlScale",
-    )
-    Box(
-        modifier = Modifier
-            .size(size.dp)
-            .scale(scale)
-            .clip(CircleShape)
-            .background(bg)
-            .then(
-                if (borderBrush != null) Modifier.border(1.dp, borderBrush, CircleShape)
-                else Modifier
-            )
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) { Icon(icon, null, tint = tint, modifier = Modifier.size(iconSize.dp)) }
-}
-
-@Composable
-private fun GlassUtilButton(icon: ImageVector, label: String, tint: Color) {
+private fun UtilButton(icon: ImageVector, label: String) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -578,15 +477,10 @@ private fun GlassUtilButton(icon: ImageVector, label: String, tint: Color) {
             modifier = Modifier
                 .size(50.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(SurfaceGlass.copy(alpha = 0.85f))
-                .border(
-                    1.dp,
-                    Brush.linearGradient(listOf(GlassBorderLight.copy(0.5f), GlassBorderDark.copy(0.2f))),
-                    RoundedCornerShape(16.dp),
-                ),
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
             contentAlignment = Alignment.Center,
-        ) { Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp)) }
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color(0xFF5050A0), fontSize = 10.sp)
+        ) { Icon(icon, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp)) }
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
     }
 }
 

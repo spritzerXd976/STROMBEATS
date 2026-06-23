@@ -3,8 +3,6 @@ package com.stormbeats.app.ui.compose
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -50,33 +48,33 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(SurfaceDark)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding(),
     ) {
         Spacer(Modifier.height(12.dp))
 
-        // Gradient section header
+        // Section header
         Row(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 modifier = Modifier
-                    .width(3.dp)
-                    .height(22.dp)
+                    .width(4.dp)
+                    .height(24.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(Brush.verticalGradient(listOf(VioletPrimary, PinkAccent)))
+                    .background(MaterialTheme.colorScheme.primary)
             )
             Spacer(Modifier.width(10.dp))
             Text(
                 "Search",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         }
 
-        // Search bar — glass morphism
+        // Search bar
         OutlinedTextField(
             value = query,
             onValueChange = { query = it; viewModel.search(it) },
@@ -85,28 +83,28 @@ fun SearchScreen(
                 .padding(horizontal = 20.dp)
                 .focusRequester(focusRequester),
             placeholder = {
-                Text("Songs, artists, albums…", style = MaterialTheme.typography.bodyLarge, color = Color(0xFF3E3E5E))
+                Text("Songs, artists, albums…", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             },
             leadingIcon = {
-                Icon(Icons.Rounded.Search, null, tint = Color(0xFF6666A0))
+                Icon(Icons.Rounded.Search, null, tint = MaterialTheme.colorScheme.primary)
             },
             trailingIcon = {
                 AnimatedVisibility(visible = query.isNotEmpty()) {
                     IconButton(onClick = { query = ""; viewModel.search("") }) {
-                        Icon(Icons.Rounded.Close, null, tint = Color(0xFF6666A0))
+                        Icon(Icons.Rounded.Close, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             },
             singleLine = true,
             shape = RoundedCornerShape(20.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor      = VioletPrimary,
-                unfocusedBorderColor    = GlassBorderLight,
-                focusedContainerColor   = SurfaceGlass.copy(alpha = 0.85f),
-                unfocusedContainerColor = SurfaceGlass.copy(alpha = 0.7f),
-                cursorColor             = VioletPrimary,
-                focusedTextColor        = Color.White,
-                unfocusedTextColor      = Color.White,
+                focusedBorderColor      = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor    = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor   = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                cursorColor             = MaterialTheme.colorScheme.primary,
+                focusedTextColor        = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor      = MaterialTheme.colorScheme.onSurface,
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
@@ -128,14 +126,14 @@ fun SearchScreen(
                     .padding(horizontal = 20.dp)
                     .height(3.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(SurfaceElevated)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             Brush.horizontalGradient(
-                                listOf(Color.Transparent, VioletPrimary.copy(0.7f), PinkAccent.copy(0.6f), Color.Transparent),
+                                listOf(Color.Transparent, MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary, Color.Transparent),
                                 startX = shimmerX, endX = shimmerX + 600f,
                             )
                         )
@@ -143,21 +141,19 @@ fun SearchScreen(
             }
         }
 
-        // Results count as glass pill badge
+        // Results count as pill badge
         AnimatedVisibility(visible = songs.isNotEmpty()) {
             Box(
                 modifier = Modifier
                     .padding(horizontal = 22.dp, vertical = 8.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(SurfaceGlass.copy(alpha = 0.6f))
-                    .border(0.5.dp, GlassBorderLight.copy(0.3f), RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .padding(horizontal = 10.dp, vertical = 4.dp),
             ) {
                 Text(
                     text = "${songs.size} results",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        brush = Brush.horizontalGradient(listOf(VioletSoft, PinkSoft))
-                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -180,8 +176,7 @@ fun SearchScreen(
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 20.dp),
-                            thickness = 0.5.dp,
-                            color = GlassBorderDark,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                         )
                     }
                 }
@@ -203,39 +198,37 @@ private fun EmptySearchHint() {
                     modifier = Modifier
                         .size((110 * ring2).dp)
                         .clip(CircleShape)
-                        .background(VioletPrimary.copy(alpha = 0.04f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.04f))
                 )
                 Box(
                     modifier = Modifier
                         .size((80 * ring1).dp)
                         .clip(CircleShape)
-                        .background(VioletPrimary.copy(alpha = 0.08f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
                 )
-                Icon(Icons.Rounded.Search, null, modifier = Modifier.size(52.dp), tint = Color(0xFF2A2A48))
+                Icon(Icons.Rounded.Search, null, modifier = Modifier.size(52.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text("Find your music", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Color(0xFF3E3E5E))
+            Text("Find your music", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             // Trending suggestion chips
-            Text("TRY", style = MaterialTheme.typography.labelSmall, color = Color(0xFF3E3E5E), letterSpacing = 2.sp, fontSize = 9.sp)
+            Text("TRY", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline, letterSpacing = 2.sp, fontSize = 9.sp)
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 40.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 val suggestions = listOf("Arijit Singh", "Bollywood Hits", "Lofi", "Trending", "Romantic")
                 items(suggestions) { chip ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SurfaceGlass.copy(alpha = 0.6f))
-                            .border(0.5.dp, GlassBorderLight.copy(0.3f), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                    ) {
-                        Text(chip, style = MaterialTheme.typography.labelMedium, color = Color(0xFF6666A0))
-                    }
+                    SuggestionChip(
+                        onClick = {},
+                        label = { Text(chip) },
+                        colors = SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        )
+                    )
                 }
             }
             Spacer(Modifier.height(4.dp))
-            Text("Powered by JioSaavn", style = MaterialTheme.typography.bodySmall, color = Color(0xFF2A2A40), fontSize = 10.sp)
+            Text("Powered by JioSaavn", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outlineVariant, fontSize = 10.sp)
         }
     }
 }
@@ -248,15 +241,14 @@ private fun NoResultsHint(query: String) {
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(SurfaceGlass.copy(alpha = 0.5f))
-                    .border(1.dp, GlassBorderLight.copy(0.2f), CircleShape),
+                    .background(MaterialTheme.colorScheme.surfaceContainer),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Rounded.SearchOff, null, modifier = Modifier.size(40.dp), tint = Color(0xFF2A2A48))
+                Icon(Icons.Rounded.SearchOff, null, modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(4.dp))
-            Text("No results for \"$query\"", style = MaterialTheme.typography.titleMedium, color = Color(0xFF4A4A70))
-            Text("Try different keywords", style = MaterialTheme.typography.bodySmall, color = Color(0xFF3A3A58))
+            Text("No results for \"$query\"", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Text("Try different keywords", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
